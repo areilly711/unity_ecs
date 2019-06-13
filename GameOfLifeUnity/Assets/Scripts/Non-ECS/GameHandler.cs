@@ -168,6 +168,7 @@ namespace GameLife
                 typeof(RenderMesh),
                 typeof(Scale),
                 typeof(LifeStatus),
+                typeof(LifeStatusNextCycle),
                 typeof(Neighbors),
                 typeof(BoundingBox),
                 typeof(ClickStatus)
