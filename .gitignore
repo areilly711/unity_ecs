@@ -44,3 +44,8 @@
 /GameOfLifeUnity/Library/webgl_cache
 .vs
 Temp
+Logs
+obj
+Assembly-CSharp.csproj
+OneVsMany.sln
+Library
