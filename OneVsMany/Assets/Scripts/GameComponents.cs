@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
@@ -36,12 +34,22 @@ namespace OneVsMany
         public float age;
     }
 
+    public struct Enemy : IComponentData
+    {
+        public int points;
+    }
+
     public struct Boid : IComponentData
+    {
+
+    }
+
+    public struct PlayerSystemState : ISystemStateComponentData
     {
 
     }
 
     public struct Food : IComponentData { }
     public struct Player : IComponentData { }
-    public struct Enemy : IComponentData { }    
+        
 }

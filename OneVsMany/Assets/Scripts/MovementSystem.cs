@@ -11,7 +11,7 @@ using Unity.Burst;
 namespace OneVsMany
 {
     [UpdateAfter(typeof(FlockingSystem))]
-    [UpdateAfter(typeof(PlayerInputSystem))]
+    [UpdateAfter(typeof(PlayerUpdateSystem))]
     public class MovementSystem : JobComponentSystem
     {
         [BurstCompile]
@@ -23,9 +23,6 @@ namespace OneVsMany
 
             public void Execute(ref Movement movement, ref Translation position, ref BoundingVolume vol)
             {
-                return;
-                //movement.direction = math.normalizesafe(targetPosition - position.Value);
-                //position.Value += movement.direction * movement.speed * deltaTime;
                 position.Value += movement.direction * deltaTime;
                 vol.volume.center = position.Value;
             }
@@ -38,7 +35,7 @@ namespace OneVsMany
 
             public void Execute(ref Bullet bullet, ref Movement movement, ref Translation position, ref BoundingVolume vol)
             {
-                //if (bullet.isActive)
+                if (bullet.isActive)
                 {
                     position.Value += movement.direction * movement.speed * deltaTime;
                     vol.volume.center = position.Value;
@@ -50,24 +47,21 @@ namespace OneVsMany
                         bullet.age = 0;
                     }
                 }
+                else
+                {
+                    position.Value.x = 1000;
+                    movement.direction = float3.zero;
+                }
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            MoveTowardTargetJob job = new MoveTowardTargetJob()
-            {
-                targetPosition = EntityManager.GetComponentData<Translation>(GameHandler.playerEntity).Value,
-                deltaTime = Time.deltaTime
-            };
-
-            JobHandle jobHandle = job.Schedule(this, inputDeps);
-
             BulletUpdateJob bulletJob = new BulletUpdateJob()
             {
                 deltaTime = Time.deltaTime
             };
-            jobHandle = bulletJob.Schedule(this, jobHandle);
+            JobHandle jobHandle = bulletJob.Schedule(this, inputDeps);
             return jobHandle;
         }
     }

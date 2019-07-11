@@ -1,18 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace OneVsMany
 {
     public class Hud : MonoBehaviour
     {
+        [SerializeField] GameHandler game;
         [SerializeField] Slider healthBar;
+        [SerializeField] Text scoreText;
+        [SerializeField] GameObject gameOverPanel;
 
-        // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
-
+            gameOverPanel.SetActive(false);
         }
 
         public void SetMaxHealth(float maxHealth)
@@ -23,6 +23,22 @@ namespace OneVsMany
         public void SetHealth(float health)
         {
             healthBar.value = health;
+        }
+
+        public void SetScore(int score)
+        {
+            scoreText.text = score.ToString();
+        }
+
+        public void ShowGameOver()
+        {
+            game.GameOver();
+            gameOverPanel.SetActive(true);
+        }
+
+        public void Restart()
+        {
+            game.Restart();
         }
     }
 }

@@ -9,15 +9,18 @@ namespace OneVsMany
 {
     public class GameHandler : MonoBehaviour
     {
-        const int NumBullets = 100;
+        const int NumBullets = 25;
         const int MaxHealth = 100;
         public float bulletDamage = 5;
         public int numEnemies = 1;
         public float enemySpeed = 0.02f;
         public float foodSpawnInterval = 20;
         public float healthDegenRate = 1;
-        public Mesh playerMesh;
+        public Mesh mesh;
         public Material playerMat;
+        public Material enemyMat;
+        public Material bulletMat;
+        public Material foodMat;
         public Hud hud;
 
         // Start is called before the first frame update
@@ -28,10 +31,27 @@ namespace OneVsMany
         {
             entityManager = World.Active.EntityManager;
 
+            entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Init(healthDegenRate, hud);
+
             CreatePlayer();
             CreateEnemies(numEnemies);
             CreateBullets(NumBullets);
             StartCoroutine(SpawnFood(foodSpawnInterval));
+        }
+
+        public void GameOver()
+        {
+
+            entityManager.World.GetExistingSystem<PlayerUpdateSystem>().Enabled = false;
+            entityManager.World.GetExistingSystem<MovementSystem>().Enabled = false;
+            entityManager.World.GetExistingSystem<CollisionSystem>().Enabled = false;
+        }
+
+        public void Restart()
+        {
+            entityManager.World.GetExistingSystem<PlayerUpdateSystem>().Enabled = true;
+            entityManager.World.GetExistingSystem<MovementSystem>().Enabled = true;
+            entityManager.World.GetExistingSystem<CollisionSystem>().Enabled = true;
         }
 
         IEnumerator SpawnFood(float interval)
@@ -45,13 +65,18 @@ namespace OneVsMany
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                CreateFood(1, entityManager.GetComponentData<Translation>(playerEntity).Value);
-            }
+            //if (Input.GetKeyDown(KeyCode.Space))
+            //{
+            //    CreateFood(1, entityManager.GetComponentData<Translation>(playerEntity).Value);
+            //}
 
-            Health playerHealth = entityManager.GetComponentData<Health>(playerEntity);
-            hud.SetHealth(playerHealth.curr);
+            //Health playerHealth = entityManager.GetComponentData<Health>(playerEntity);
+            //hud.SetHealth(playerHealth.curr);
+
+            //if (playerHealth.curr <= 0)
+            //{
+            //    // game over
+            //}
         }
 
         private void LateUpdate()
@@ -69,14 +94,15 @@ namespace OneVsMany
                typeof(Scale),
                typeof(BoundingVolume),
                typeof(Health),
-               typeof(Player)
+               typeof(Player),
+               typeof(PlayerSystemState)
            );
 
             entityManager.SetComponentData<Movement>(playerEntity, new Movement { speed = 5 });
             
             hud.SetMaxHealth(MaxHealth);
             InitHealth(playerEntity, MaxHealth, MaxHealth);
-            InitRenderData(playerEntity, new float3(0), 1, playerMesh, playerMat);
+            InitRenderData(playerEntity, new float3(0), 1, mesh, playerMat);
         }
 
         void CreateEnemies(int numEnemies)
@@ -98,7 +124,7 @@ namespace OneVsMany
                 entityManager.SetComponentData<Movement>(e, new Movement { speed = 1 });
                 InitHealth(e, 10, 10);
                 InitHealthModifier(e, -10/*MaxHealth*/);
-                InitRenderData(e, CreateRandomSpawnPosition(Vector2.zero, 0, 5), 0.5f, playerMesh, playerMat);
+                InitRenderData(e, CreateRandomSpawnPosition(Vector2.zero, 0, 5), 0.5f, mesh, enemyMat);
             }
         }
 
@@ -128,7 +154,7 @@ namespace OneVsMany
 
                 InitHealthModifier(e, -bulletDamage);
                 entityManager.SetComponentData<Movement>(e, new Movement { speed = enemySpeed });
-                InitRenderData(e, new float3(1000, 0, 0), 0.1f, playerMesh, playerMat);
+                InitRenderData(e, new float3(1000, 0, 0), 0.1f, mesh, bulletMat);
             }
         }
 
@@ -147,7 +173,7 @@ namespace OneVsMany
                 );
 
                 InitHealthModifier(e, 50);
-                InitRenderData(e, CreateRandomSpawnPosition(playerPos, 2 , 2), 0.2f, playerMesh, playerMat);
+                InitRenderData(e, CreateRandomSpawnPosition(playerPos, 2 , 2), 0.4f, mesh, foodMat);
             }
         }
 
@@ -165,7 +191,7 @@ namespace OneVsMany
         {
             entityManager.SetComponentData<Scale>(e, new Scale { Value = scale });
             entityManager.SetComponentData<Translation>(e, new Translation { Value = pos });
-            entityManager.SetSharedComponentData<RenderMesh>(e, new RenderMesh { mesh = playerMesh, material = playerMat });
+            entityManager.SetSharedComponentData<RenderMesh>(e, new RenderMesh { mesh = mesh, material = mat });
 
             Bounds b = new Bounds();
             b.center = pos;

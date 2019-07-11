@@ -61,17 +61,15 @@ namespace OneVsMany
                         steerCount++;            // Keep track of how many
                     }
 
-                    // align
+                   
                     float3 boidVelocity = boidVelocities[i].direction;
                     if ((d > 0) && (d < neighborDistance))
                     {
+                        // align
                         alignSum += boidVelocity;
                         alignCount++;
-                    }
 
-                    // cohesion
-                    if ((d > 0) && (d < neighborDistance))
-                    {
+                        // cohesion
                         cohesionSum += b.Value; // Add position
                         cohesionCount++;
                     }

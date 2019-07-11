@@ -1,41 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Burst;
-using Unity.Mathematics;
-using Unity.Transforms;
 using Unity.Collections;
+using Unity.Burst;
 
 namespace OneVsMany
 {
     public partial class CollisionSystem : JobComponentSystem
     {
-        //[BurstCompile]
-        //[RequireComponentTag(typeof(Enemy))]
-        //struct PlayerToEnemyCollisionJob : IJobForEachWithEntity<BoundingVolume, Scale>
-        //{
-        //    public Entity playerEntity;
-        //    public Health playerHealth;
-        //    public Bounds playerBounds;
-
-        //    public EntityCommandBuffer.Concurrent commandBuffer;
-
-        //    public void Execute(Entity entity, int index, [ReadOnly] ref BoundingVolume bounds, ref Scale scale)
-        //    {
-        //        //throw new System.NotImplementedException();
-        //        if (bounds.volume.Intersects(playerBounds))
-        //        {
-        //            // hit the player
-        //            //Debug.Log("Player Hit");
-        //            //scale.Value += 0.01f;
-        //            Utils.ModifyHealth(ref playerHealth, playerHealth.max);
-        //            commandBuffer.SetComponent<Health>(index, playerEntity, playerHealth);
-        //        }
-        //    }
-        //}
-
         /// <summary>
         /// Checks if the player is colliding with a health modifier
         /// </summary>
@@ -50,7 +22,6 @@ namespace OneVsMany
 
             public void Execute(Entity entity, int index, ref BoundingVolume vol, ref HealthModifier healthMod)
             {
-                return;
                 if (vol.volume.Intersects(playerBounds))
                 {
                     // there was a collision, modify the player's health
@@ -104,6 +75,7 @@ namespace OneVsMany
         /// Checks all Health components to see if their health is less than 0 and
         /// destroys the entity if that is the case
         /// </summary>
+        [BurstCompile()]
         struct ValidateLifeJob : IJobForEachWithEntity<Health>
         {
             public EntityCommandBuffer.Concurrent commandBuffer;
