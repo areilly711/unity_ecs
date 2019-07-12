@@ -155,15 +155,27 @@ namespace OneVsMany
             }
         }
 
+        [BurstCompile()]
+        [RequireComponentTag(typeof(Enemy))]
+        struct SetFacingDirectionJob : IJobForEach<Translation, NonUniformScale>
+        {
+            public Translation targetLocation;
+            public void Execute(ref Translation position, ref NonUniformScale scale)
+            {
+                float dir = targetLocation.Value.x - position.Value.x;
+                scale.Value.x = scale.Value.y * math.sign(dir);
+            }
+        }
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             EntityQuery boidQuery = EntityManager.CreateEntityQuery(typeof(Enemy), typeof(Movement), typeof(Translation));
-
+            Translation playerPos = EntityManager.GetComponentData<Translation>(GameHandler.playerEntity);
             DetermineMovementDirectionJob job = new DetermineMovementDirectionJob()
             {
                 boidPositions = boidQuery.ToComponentDataArray<Translation>(Allocator.TempJob),
                 boidVelocities = boidQuery.ToComponentDataArray<Movement>(Allocator.TempJob),
-                targetPosition = EntityManager.GetComponentData<Translation>(GameHandler.playerEntity),
+                targetPosition = playerPos,
                 maxForce = MaxForce,
                 desiredSeparation = DesiredSeparation,
                 neighborDistance = NeighborDistance,
@@ -171,6 +183,13 @@ namespace OneVsMany
             };
 
             JobHandle jobHandle = job.Schedule(this, inputDeps);
+
+            SetFacingDirectionJob faceJob = new SetFacingDirectionJob()
+            {
+                targetLocation = playerPos
+            };
+            jobHandle = faceJob.Schedule(this, jobHandle);
+
             return jobHandle;
         }
     }

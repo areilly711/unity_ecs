@@ -982,7 +982,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15.225, y: -46.1}
+  m_AnchoredPosition: {x: 15.224976, y: -46.100006}
   m_SizeDelta: {x: 204.21, y: 38.46}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1452198426
@@ -1149,9 +1149,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletDamage: 5
   numEnemies: 10
-  enemySpeed: 0.002
+  enemySpeed: 1
   foodSpawnInterval: 5
-  healthDegenRate: 5
+  maxPlayerHealth: 100
+  healthDegenRate: 2
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   playerMat: {fileID: 2100000, guid: 554a1dbdb337c504cb1587aa7e769700, type: 2}
   enemyMat: {fileID: 2100000, guid: 4b316835ecfb89e4baa93a7f49acc229, type: 2}

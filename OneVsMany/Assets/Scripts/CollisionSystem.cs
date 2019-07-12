@@ -75,15 +75,19 @@ namespace OneVsMany
         /// Checks all Health components to see if their health is less than 0 and
         /// destroys the entity if that is the case
         /// </summary>
-        [BurstCompile()]
-        struct ValidateLifeJob : IJobForEachWithEntity<Health>
+        //[BurstCompile()]
+        struct ValidateLifeJob : IJobForEachWithEntity<Enemy, Health>
         {
+            public Entity playerEntity;
+            public Player player;
             public EntityCommandBuffer.Concurrent commandBuffer;
-            public void Execute(Entity entity, int index, ref Health health)
+            public void Execute(Entity entity, int index, ref Enemy enemy, ref Health health)
             {
                 if (health.curr <= 0)
                 {
                     commandBuffer.DestroyEntity(index, entity);
+                    player.score += enemy.points;
+                    commandBuffer.SetComponent<Player>(index, playerEntity, player);
                 }
             }
         }
@@ -100,7 +104,7 @@ namespace OneVsMany
             EntityCommandBuffer.Concurrent commandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
             BoundingVolume playerBounds = GetComponentDataFromEntity<BoundingVolume>(true)[GameHandler.playerEntity];
             Health playerHealth = GetComponentDataFromEntity<Health>(true)[GameHandler.playerEntity];
-
+            Player player = GetComponentDataFromEntity<Player>(true)[GameHandler.playerEntity];
             //PlayerToEnemyCollisionJob pToEJob = new PlayerToEnemyCollisionJob()
             //{
             //    playerBounds = playerBounds.volume,
@@ -133,6 +137,8 @@ namespace OneVsMany
 
             ValidateLifeJob validateLifeJob = new ValidateLifeJob()
             {
+                playerEntity = GameHandler.playerEntity,
+                player = player,
                 commandBuffer = commandBuffer
             };
             jobHandle = validateLifeJob.Schedule(this, jobHandle);

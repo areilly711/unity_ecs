@@ -1,20 +1,23 @@
 ﻿using System.Collections;
 using UnityEngine;
+using Unity.Collections;
 using Unity.Entities;
-using Unity.Transforms;
-using Unity.Rendering;
 using Unity.Mathematics;
+using Unity.Rendering;
+using Unity.Transforms;
 
 namespace OneVsMany
 {
     public class GameHandler : MonoBehaviour
     {
         const int NumBullets = 25;
-        const int MaxHealth = 100;
+        //const int MaxHealth = 100;
         public float bulletDamage = 5;
         public int numEnemies = 1;
         public float enemySpeed = 0.02f;
+        public float enemyHealth = 10;
         public float foodSpawnInterval = 20;
+        public float maxPlayerHealth = 50;
         public float healthDegenRate = 1;
         public Mesh mesh;
         public Material playerMat;
@@ -30,7 +33,6 @@ namespace OneVsMany
         void Start()
         {
             entityManager = World.Active.EntityManager;
-
             entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Init(healthDegenRate, hud);
 
             CreatePlayer();
@@ -41,17 +43,33 @@ namespace OneVsMany
 
         public void GameOver()
         {
-
-            entityManager.World.GetExistingSystem<PlayerUpdateSystem>().Enabled = false;
-            entityManager.World.GetExistingSystem<MovementSystem>().Enabled = false;
-            entityManager.World.GetExistingSystem<CollisionSystem>().Enabled = false;
+            // stop all the systems
+            foreach (ComponentSystemBase s in entityManager.World.Systems)
+            {
+                s.Enabled = false;
+            }
         }
 
         public void Restart()
         {
-            entityManager.World.GetExistingSystem<PlayerUpdateSystem>().Enabled = true;
-            entityManager.World.GetExistingSystem<MovementSystem>().Enabled = true;
-            entityManager.World.GetExistingSystem<CollisionSystem>().Enabled = true;
+            foreach (ComponentSystemBase s in entityManager.World.Systems)
+            {
+                s.Enabled = true;
+            }
+
+            EntityQueryDesc desc = new EntityQueryDesc()
+            {
+                Any = new ComponentType[]{ typeof(Enemy), typeof(Food) }
+            };
+            EntityQuery q = entityManager.CreateEntityQuery(desc);
+            NativeArray<Entity> entitiesToDestroy = q.ToEntityArray(Allocator.TempJob);
+            for (int i = 0; i < entitiesToDestroy.Length; i++)
+            {
+                entityManager.DestroyEntity(entitiesToDestroy[i]);
+            }
+            entitiesToDestroy.Dispose();
+
+            InitHealth(playerEntity, maxPlayerHealth, maxPlayerHealth);           
         }
 
         IEnumerator SpawnFood(float interval)
@@ -94,14 +112,13 @@ namespace OneVsMany
                typeof(Scale),
                typeof(BoundingVolume),
                typeof(Health),
-               typeof(Player),
-               typeof(PlayerSystemState)
+               typeof(Player)
            );
 
             entityManager.SetComponentData<Movement>(playerEntity, new Movement { speed = 5 });
             
-            hud.SetMaxHealth(MaxHealth);
-            InitHealth(playerEntity, MaxHealth, MaxHealth);
+            hud.SetMaxHealth(maxPlayerHealth);
+            InitHealth(playerEntity, maxPlayerHealth, maxPlayerHealth);
             InitRenderData(playerEntity, new float3(0), 1, mesh, playerMat);
         }
 
@@ -114,15 +131,16 @@ namespace OneVsMany
                     typeof(Translation),
                     typeof(LocalToWorld),
                     typeof(RenderMesh),
-                    typeof(Scale),
+                    typeof(NonUniformScale),
                     typeof(BoundingVolume),
                     typeof(Health),
                     typeof(HealthModifier),
                     typeof(Enemy)
                 );
 
-                entityManager.SetComponentData<Movement>(e, new Movement { speed = 1 });
-                InitHealth(e, 10, 10);
+                entityManager.SetComponentData<Movement>(e, new Movement { speed = enemySpeed });
+                entityManager.SetComponentData<Enemy>(e, new Enemy { points = (int)enemyHealth });
+                InitHealth(e, enemyHealth, enemyHealth);
                 InitHealthModifier(e, -10/*MaxHealth*/);
                 InitRenderData(e, CreateRandomSpawnPosition(Vector2.zero, 0, 5), 0.5f, mesh, enemyMat);
             }
@@ -153,7 +171,7 @@ namespace OneVsMany
                 );
 
                 InitHealthModifier(e, -bulletDamage);
-                entityManager.SetComponentData<Movement>(e, new Movement { speed = enemySpeed });
+                entityManager.SetComponentData<Movement>(e, new Movement { speed = 0 });
                 InitRenderData(e, new float3(1000, 0, 0), 0.1f, mesh, bulletMat);
             }
         }
@@ -172,12 +190,12 @@ namespace OneVsMany
                     typeof(Food)
                 );
 
-                InitHealthModifier(e, 50);
+                InitHealthModifier(e, maxPlayerHealth);
                 InitRenderData(e, CreateRandomSpawnPosition(playerPos, 2 , 2), 0.4f, mesh, foodMat);
             }
         }
 
-        void InitHealth(Entity e, int curr, int max)
+        void InitHealth(Entity e, float curr, float max)
         {
             entityManager.SetComponentData<Health>(e, new Health { curr = curr, max = max });
         }
@@ -189,7 +207,14 @@ namespace OneVsMany
 
         void InitRenderData(Entity e, float3 pos, float scale, Mesh mesh, Material mat)
         {
-            entityManager.SetComponentData<Scale>(e, new Scale { Value = scale });
+            if (entityManager.HasComponent<Scale>(e))
+            {
+                entityManager.SetComponentData<Scale>(e, new Scale { Value = scale });
+            }
+            else if (entityManager.HasComponent<NonUniformScale>(e))
+            {
+                entityManager.SetComponentData<NonUniformScale>(e, new NonUniformScale { Value = new float3(scale, scale, scale) });
+            }
             entityManager.SetComponentData<Translation>(e, new Translation { Value = pos });
             entityManager.SetSharedComponentData<RenderMesh>(e, new RenderMesh { mesh = mesh, material = mat });
 

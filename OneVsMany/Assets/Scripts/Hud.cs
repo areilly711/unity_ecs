@@ -39,6 +39,7 @@ namespace OneVsMany
         public void Restart()
         {
             game.Restart();
+            gameOverPanel.SetActive(false);
         }
     }
 }

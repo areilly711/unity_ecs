@@ -50,6 +50,9 @@ namespace OneVsMany
     }
 
     public struct Food : IComponentData { }
-    public struct Player : IComponentData { }
+    public struct Player : IComponentData
+    {
+        public int score;
+    }
         
 }
