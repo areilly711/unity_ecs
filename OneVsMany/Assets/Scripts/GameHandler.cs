@@ -16,6 +16,7 @@ namespace OneVsMany
         public int numEnemies = 1;
         public float enemySpeed = 0.02f;
         public float enemyHealth = 10;
+        public float enemySpawnInterval = 10;
         public float foodSpawnInterval = 20;
         public float maxPlayerHealth = 50;
         public float healthDegenRate = 1;
@@ -34,11 +35,17 @@ namespace OneVsMany
         {
             entityManager = World.Active.EntityManager;
             entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Init(healthDegenRate, hud);
+            entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Enabled = false;
+            entityManager.World.GetOrCreateSystem<FlockingSystem>().Enabled = false;
+            entityManager.World.GetOrCreateSystem<FlockingSystem>().Enabled = false;
+            entityManager.World.GetOrCreateSystem<CollisionSystem>().Enabled = false;
+            entityManager.World.GetOrCreateSystem<MovementSystem>().Enabled = false;
+
 
             CreatePlayer();
-            CreateEnemies(numEnemies);
+            //CreateEnemies(numEnemies);
             CreateBullets(NumBullets);
-            StartCoroutine(SpawnFood(foodSpawnInterval));
+            
         }
 
         public void GameOver()
@@ -48,6 +55,7 @@ namespace OneVsMany
             {
                 s.Enabled = false;
             }
+            StopAllCoroutines();
         }
 
         public void Restart()
@@ -57,6 +65,7 @@ namespace OneVsMany
                 s.Enabled = true;
             }
 
+            // get all food and enemies
             EntityQueryDesc desc = new EntityQueryDesc()
             {
                 Any = new ComponentType[]{ typeof(Enemy), typeof(Food) }
@@ -65,11 +74,16 @@ namespace OneVsMany
             NativeArray<Entity> entitiesToDestroy = q.ToEntityArray(Allocator.TempJob);
             for (int i = 0; i < entitiesToDestroy.Length; i++)
             {
+                // delete all food and enemies
                 entityManager.DestroyEntity(entitiesToDestroy[i]);
             }
             entitiesToDestroy.Dispose();
 
-            InitHealth(playerEntity, maxPlayerHealth, maxPlayerHealth);           
+            // give the player max health again
+            InitHealth(playerEntity, maxPlayerHealth, maxPlayerHealth);
+
+            StartCoroutine(SpawnFood(foodSpawnInterval));
+            StartCoroutine(SpawnEnemies(enemySpawnInterval, numEnemies));
         }
 
         IEnumerator SpawnFood(float interval)
@@ -78,6 +92,15 @@ namespace OneVsMany
             {
                 yield return new WaitForSeconds(interval);
                 CreateFood(1, entityManager.GetComponentData<Translation>(playerEntity).Value);
+            }
+        }
+
+        IEnumerator SpawnEnemies(float interval, int numEnemies)
+        {
+            while (true)
+            {
+                CreateEnemies(numEnemies);
+                yield return new WaitForSeconds(interval);
             }
         }
 
@@ -142,7 +165,7 @@ namespace OneVsMany
                 entityManager.SetComponentData<Enemy>(e, new Enemy { points = (int)enemyHealth });
                 InitHealth(e, enemyHealth, enemyHealth);
                 InitHealthModifier(e, -10/*MaxHealth*/);
-                InitRenderData(e, CreateRandomSpawnPosition(Vector2.zero, 0, 5), 0.5f, mesh, enemyMat);
+                InitRenderData(e, CreateRandomSpawnPosition(Vector2.zero, 15, 20), 0.5f, mesh, enemyMat);
             }
         }
 

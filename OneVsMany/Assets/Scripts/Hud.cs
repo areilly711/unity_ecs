@@ -9,10 +9,12 @@ namespace OneVsMany
         [SerializeField] Slider healthBar;
         [SerializeField] Text scoreText;
         [SerializeField] GameObject gameOverPanel;
+        [SerializeField] GameObject startPanel;
 
         private void Start()
         {
             gameOverPanel.SetActive(false);
+            startPanel.SetActive(true);
         }
 
         public void SetMaxHealth(float maxHealth)
@@ -40,6 +42,7 @@ namespace OneVsMany
         {
             game.Restart();
             gameOverPanel.SetActive(false);
+            startPanel.SetActive(false);
         }
     }
 }
