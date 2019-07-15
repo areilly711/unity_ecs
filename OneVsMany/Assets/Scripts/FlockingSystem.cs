@@ -43,6 +43,7 @@ namespace OneVsMany
                 float3 cohesionSum = float3.zero;
                 int cohesionCount = 0;
 
+                // Craig Reynolds flocking method
                 // For every boid in the system, check if it's too close
                 for (int i = 0; i < boidPositions.Length; i++)
                 {
@@ -169,6 +170,7 @@ namespace OneVsMany
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
+            // get all the flocking agents
             EntityQuery boidQuery = EntityManager.CreateEntityQuery(typeof(Enemy), typeof(Movement), typeof(Translation));
             Translation playerPos = EntityManager.GetComponentData<Translation>(GameHandler.playerEntity);
             DetermineMovementDirectionJob job = new DetermineMovementDirectionJob()

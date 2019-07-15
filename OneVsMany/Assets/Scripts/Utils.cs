@@ -15,13 +15,11 @@ namespace OneVsMany
         public static float3 Seek(float3 target, float3 start, float speed)
         {
             return math.normalizesafe((target - start)) * speed;
-            //float3 dir;
-            //dir = math.normalizesafe((target - start)) * speed;
-            //return dir;
         }
 
         // Separation
         // Method checks for nearby boids and steers away
+        // From https://processing.org/examples/flocking.html
         public static float3 Separate(float3 position, float3 velocity, [ReadOnly] NativeArray<Translation> boids, float desiredSeparation, float maxSpeed, float maxForce)
         {
             float3 steer = float3.zero;
@@ -64,6 +62,7 @@ namespace OneVsMany
 
         // Alignment
         // For every nearby boid in the system, calculate the average velocity
+        // From https://processing.org/examples/flocking.html
         public static float3 Align(float3 position, float3 velocity, [ReadOnly] NativeArray<Translation> boidPositions, [ReadOnly] NativeArray<Movement> boidVelocities, float neighborDistance, float maxSpeed, float maxForce)
         {
             float3 sum = float3.zero;
@@ -94,6 +93,7 @@ namespace OneVsMany
 
         // Cohesion
         // For the average position (i.e. center) of all nearby boids, calculate steering vector towards that position
+        // From https://processing.org/examples/flocking.html
         public static float3 Cohesion(float3 position, float3 velocity, [ReadOnly] NativeArray<Translation> boids, float neighborDistance, float maxSpeed)
         {
             float3 sum = float3.zero;   // Start with empty vector to accumulate all positions

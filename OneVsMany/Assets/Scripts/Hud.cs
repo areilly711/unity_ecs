@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+#pragma warning disable CS0649
 namespace OneVsMany
 {
     public class Hud : MonoBehaviour
@@ -46,3 +47,4 @@ namespace OneVsMany
         }
     }
 }
+#pragma warning restore CS0649

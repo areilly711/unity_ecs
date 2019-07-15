@@ -14,20 +14,9 @@ namespace OneVsMany
     [UpdateAfter(typeof(PlayerUpdateSystem))]
     public class MovementSystem : JobComponentSystem
     {
-        [BurstCompile]
-        [ExcludeComponent(typeof(Player), typeof(Bullet), typeof(Enemy))]
-        struct MoveTowardTargetJob : IJobForEach<Movement, Translation, BoundingVolume>
-        {
-            public float3 targetPosition;
-            public float deltaTime;
-
-            public void Execute(ref Movement movement, ref Translation position, ref BoundingVolume vol)
-            {
-                position.Value += movement.direction * deltaTime;
-                vol.volume.center = position.Value;
-            }
-        }
-
+        /// <summary>
+        /// Updates active bullet positions and bounding volumes
+        /// </summary>
         [BurstCompile]
         struct BulletUpdateJob : IJobForEach<Bullet, Movement, Translation, BoundingVolume>
         {
@@ -37,6 +26,7 @@ namespace OneVsMany
             {
                 if (bullet.isActive)
                 {
+                    // move the bullet along the direction that it was shot
                     position.Value += movement.direction * movement.speed * deltaTime;
                     vol.volume.center = position.Value;
                     bullet.age += deltaTime;

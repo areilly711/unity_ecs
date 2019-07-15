@@ -105,14 +105,7 @@ namespace OneVsMany
             BoundingVolume playerBounds = GetComponentDataFromEntity<BoundingVolume>(true)[GameHandler.playerEntity];
             Health playerHealth = GetComponentDataFromEntity<Health>(true)[GameHandler.playerEntity];
             Player player = GetComponentDataFromEntity<Player>(true)[GameHandler.playerEntity];
-            //PlayerToEnemyCollisionJob pToEJob = new PlayerToEnemyCollisionJob()
-            //{
-            //    playerBounds = playerBounds.volume,
-            //    playerHealth = playerHealth,
-            //    commandBuffer = commandBuffer
-            //};
-            //JobHandle jobHandle = pToEJob.Schedule(this, inputDeps);
-
+            
             PlayerToHealthModifierCollisionJob pToHJob = new PlayerToHealthModifierCollisionJob()
             {
                 player = GameHandler.playerEntity,

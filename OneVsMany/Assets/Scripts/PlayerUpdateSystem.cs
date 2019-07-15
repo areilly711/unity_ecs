@@ -69,6 +69,7 @@ namespace OneVsMany
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
+            // take input and move the player
             float h = Input.GetAxis("Horizontal");
             float v = Input.GetAxis("Vertical");
             
@@ -82,8 +83,9 @@ namespace OneVsMany
 
             JobHandle jobHandle = playerMoverJob.Schedule(this, inputDeps);
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0)) // left click
             {
+                // bullet was fired, finish the player job first
                 jobHandle.Complete();
                 float3 clickPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
@@ -100,10 +102,10 @@ namespace OneVsMany
 
             jobHandle.Complete();
 
+            // update ui elements based on player data
             Player player = GetComponentDataFromEntity<Player>(true)[GameHandler.playerEntity];
             hud.SetScore(player.score);
 
-            //EntityQuery isPlayerAliveQuery = EntityManager.CreateEntityQuery(typeof(Player), typeof(PlayerSystemState));
             Health playerHealth = GetComponentDataFromEntity<Health>(true)[GameHandler.playerEntity];
             hud.SetHealth(playerHealth.curr);
 

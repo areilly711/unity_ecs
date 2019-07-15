@@ -8,6 +8,9 @@ using Unity.Transforms;
 
 namespace OneVsMany
 {
+    /// <summary>
+    /// Entry point of the application. Control game settings here (via unity inspector)
+    /// </summary>
     public class GameHandler : MonoBehaviour
     {
         const int NumBullets = 25;
@@ -33,6 +36,7 @@ namespace OneVsMany
 
         void Start()
         {
+            // Disalbes the systems until we move through the menus
             entityManager = World.Active.EntityManager;
             entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Init(healthDegenRate, hud);
             entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Enabled = false;
@@ -43,9 +47,9 @@ namespace OneVsMany
 
 
             CreatePlayer();
-            //CreateEnemies(numEnemies);
-            CreateBullets(NumBullets);
-            
+
+            // create a pool of bullets that we can re-use rather than creating new bullets on the fly
+            CreateBullets(NumBullets); 
         }
 
         public void GameOver()
@@ -56,10 +60,12 @@ namespace OneVsMany
                 s.Enabled = false;
             }
             StopAllCoroutines();
+            entityManager.CompleteAllJobs();
         }
 
         public void Restart()
         {
+            // start all the systems
             foreach (ComponentSystemBase s in entityManager.World.Systems)
             {
                 s.Enabled = true;
@@ -102,27 +108,6 @@ namespace OneVsMany
                 CreateEnemies(numEnemies);
                 yield return new WaitForSeconds(interval);
             }
-        }
-
-        private void Update()
-        {
-            //if (Input.GetKeyDown(KeyCode.Space))
-            //{
-            //    CreateFood(1, entityManager.GetComponentData<Translation>(playerEntity).Value);
-            //}
-
-            //Health playerHealth = entityManager.GetComponentData<Health>(playerEntity);
-            //hud.SetHealth(playerHealth.curr);
-
-            //if (playerHealth.curr <= 0)
-            //{
-            //    // game over
-            //}
-        }
-
-        private void LateUpdate()
-        {
-            //Camera.main.transform.LookAt(entityManager.GetComponentData<Translation>(playerEntity).Value);
         }
 
         void CreatePlayer()
@@ -228,6 +213,14 @@ namespace OneVsMany
             entityManager.SetComponentData<HealthModifier>(e, new HealthModifier { value = amount });
         }
 
+        /// <summary>
+        /// Helper for intializing render data of an entity
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="pos"></param>
+        /// <param name="scale"></param>
+        /// <param name="mesh"></param>
+        /// <param name="mat"></param>
         void InitRenderData(Entity e, float3 pos, float scale, Mesh mesh, Material mat)
         {
             if (entityManager.HasComponent<Scale>(e))
