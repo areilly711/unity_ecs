@@ -6,7 +6,6 @@ using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine.SceneManagement;
 
-#pragma warning disable CS0649 
 namespace GameLife
 {
     /// <summary>
@@ -17,10 +16,10 @@ namespace GameLife
         public const int MaxSize = 1000;
         
         [SerializeField] int gridSize = 100;
-        [SerializeField] Mesh cellMesh;
-        [SerializeField] Material liveCellMaterial;
-        [SerializeField] Transform gridMin;
-        [SerializeField] Transform gridMax;
+        [SerializeField] Mesh cellMesh = null;
+        [SerializeField] Material liveCellMaterial = null;
+        [SerializeField] Transform gridMin = null;
+        [SerializeField] Transform gridMax = null;
         
         EntityManager entityManager;
 
@@ -29,7 +28,7 @@ namespace GameLife
         // Start is called before the first frame update
         void Start()
         {
-            entityManager = World.Active.EntityManager;
+            entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         }
         
         public void SetGridSize(int width)
@@ -44,8 +43,8 @@ namespace GameLife
 
         private void InitSystems()
         {
-            World.Active.GetOrCreateSystem<PointInCellAABSystem>().Enabled = false;
-            World.Active.GetOrCreateSystem<LifeVerificationSystem>().Enabled = true;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PointInCellAABSystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<LifeVerificationSystem>().Enabled = true;
         }
 
         public void RestartGame()
@@ -55,8 +54,8 @@ namespace GameLife
             entityManager.DestroyEntity(allEntities);
             allEntities.Dispose();
 
-            World.Active.GetExistingSystem<PointInCellAABSystem>().Enabled = true;
-            World.Active.GetExistingSystem<LifeVerificationSystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetExistingSystem<PointInCellAABSystem>().Enabled = true;
+            World.DefaultGameObjectInjectionWorld.GetExistingSystem<LifeVerificationSystem>().Enabled = false;
             
             Time.timeScale = 1;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -64,12 +63,12 @@ namespace GameLife
 
         public void NextCycle()
         {
-            World.Active.GetExistingSystem<LifeVerificationSystem>().forceJob = true;
+            World.DefaultGameObjectInjectionWorld.GetExistingSystem<LifeVerificationSystem>().forceJob = true;
         }
 
         public void CreateGrid()
         {
-            World.Active.GetOrCreateSystem<LifeVerificationSystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<LifeVerificationSystem>().Enabled = false;
             
             int gridWidth = gridSize;
             int gridHeight = gridSize;
@@ -182,6 +181,7 @@ namespace GameLife
 
         void SetCellComponentData(Entity cell, int row, int col, float scale)
         {
+            entityManager.SetName(cell, string.Format("[{0},{1}]", row, col));
             entityManager.SetSharedComponentData<RenderMesh>(cell, new RenderMesh { mesh = cellMesh, material = liveCellMaterial });
 
             float halfScale = scale * 0.5f;
@@ -206,8 +206,9 @@ namespace GameLife
             box.extents = new float3(halfScale, halfScale, 1);
             entityManager.SetComponentData<BoundingBox>(cell, new BoundingBox { box = box });
             entityManager.SetComponentData<Neighbors>(cell, new Neighbors());
+            entityManager.AddComponent<WorldRenderBounds>(cell);
+            entityManager.AddComponent<RenderBounds>(cell);
+            entityManager.AddComponent<ChunkWorldRenderBounds>(cell);
         }
     }
 }
-
-#pragma warning restore CS0649

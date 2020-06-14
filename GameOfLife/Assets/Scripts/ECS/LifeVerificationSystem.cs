@@ -2,7 +2,6 @@
 using Unity.Transforms;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Burst;
 
 namespace GameLife
 {
@@ -11,73 +10,7 @@ namespace GameLife
     /// https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
     /// </summary>
     public class LifeVerificationSystem : JobComponentSystem
-    {
-        /// <summary>
-        /// Counts the number of live neighbors a cell has and then determines if it should live or die next cycle
-        /// </summary>
-        [BurstCompile]
-        struct NeighborCounterJob : IJobForEachWithEntity<Neighbors, LifeStatusNextCycle>
-        {
-            [ReadOnly] public ComponentDataFromEntity<LifeStatus> lifeStatusLookup;
-
-            public void Execute(Entity e, int index, [ReadOnly] ref Neighbors cell, [WriteOnly] ref LifeStatusNextCycle next)
-            {
-                byte numLiveNeighbors = 0;
-
-                // check current life status of all neighbors
-                if (cell.nw != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.nw].isAliveNow;
-                if (cell.n != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.n].isAliveNow;
-                if (cell.ne != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.ne].isAliveNow;
-                if (cell.w != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.w].isAliveNow;
-                if (cell.e != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.e].isAliveNow;
-                if (cell.sw != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.sw].isAliveNow;
-                if (cell.s != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.s].isAliveNow;
-                if (cell.se != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.se].isAliveNow;
-                
-                if (lifeStatusLookup[e].isAliveNow == 1) // the cell currently alive
-                {
-                    if (numLiveNeighbors < 2 || numLiveNeighbors > 3)
-                    {
-                        // die from under population or over population
-                        next.isAliveNextCycle = 0;
-                    }
-                    else
-                    {
-                        next.isAliveNextCycle = 1;
-                    }
-                }
-                else // the cell is currently dead
-                {
-                    if (numLiveNeighbors == 3)
-                    {
-                        // become alive from reproduction
-                        next.isAliveNextCycle = 1;
-                    }
-                    else
-                    {
-                        next.isAliveNextCycle = 0;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sets the cell as dead or alive based on the previous calculation in the Neighborcounter job
-        /// </summary>
-        [BurstCompile]
-        struct LifeStatusChangerJob : IJobForEachWithEntity<LifeStatus, LifeStatusNextCycle, Scale>
-        {
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float> scaleConsts;
-
-            public void Execute(Entity entity, int index, [WriteOnly] ref LifeStatus status, [ReadOnly] ref LifeStatusNextCycle nextStatus, [ReadOnly] ref Scale scale)
-            {
-                status.isAliveNow = nextStatus.isAliveNextCycle;
-
-                // dead cells are invisible (scale 0)
-                scale.Value = scaleConsts[status.isAliveNow];
-            }
-        }
-
+    {        
         float timePassed = 0;
         const float UpdateInterval = 0.5f;
         public bool forceJob;
@@ -105,13 +38,49 @@ namespace GameLife
             };
             
             EntityQuery group = GetEntityQuery(query);
-            ComponentDataFromEntity<LifeStatus> statuses = GetComponentDataFromEntity<LifeStatus>(false);
+            ComponentDataFromEntity<LifeStatus> lifeStatusLookup = GetComponentDataFromEntity<LifeStatus>(false);
             
-            NeighborCounterJob neighborCounterJob = new NeighborCounterJob()
+            JobHandle jobHandle = Entities
+                .WithReadOnly(lifeStatusLookup)
+                .ForEach((Entity e, int entityInQueryIndex, ref LifeStatusNextCycle next, in Neighbors cell) =>
             {
-                lifeStatusLookup = statuses,
-            };
-            JobHandle jobHandle = neighborCounterJob.Schedule(this, inputDeps);
+                byte numLiveNeighbors = 0;
+
+                // check current life status of all neighbors
+                if (cell.nw != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.nw].isAliveNow;
+                if (cell.n != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.n].isAliveNow;
+                if (cell.ne != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.ne].isAliveNow;
+                if (cell.w != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.w].isAliveNow;
+                if (cell.e != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.e].isAliveNow;
+                if (cell.sw != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.sw].isAliveNow;
+                if (cell.s != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.s].isAliveNow;
+                if (cell.se != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.se].isAliveNow;
+
+                if (lifeStatusLookup[e].isAliveNow == 1) // the cell currently alive
+                {
+                    if (numLiveNeighbors < 2 || numLiveNeighbors > 3)
+                    {
+                        // die from under population or over population
+                        next.isAliveNextCycle = 0;
+                    }
+                    else
+                    {
+                        next.isAliveNextCycle = 1;
+                    }
+                }
+                else // the cell is currently dead
+                {
+                    if (numLiveNeighbors == 3)
+                    {
+                        // become alive from reproduction
+                        next.isAliveNextCycle = 1;
+                    }
+                    else
+                    {
+                        next.isAliveNextCycle = 0;
+                    }
+                }
+            }).Schedule(inputDeps);
             
             // get the scaling constants and save them for our job later. This way, we can do a look up rather than a conditional
             EntityQuery scaleConstQuery = EntityManager.CreateEntityQuery(typeof(ScaleConst), typeof(Scale));
@@ -123,15 +92,20 @@ namespace GameLife
             }
             consts.Dispose();
 
-            // update the current life status of all the cells with this job
-            LifeStatusChangerJob lifeChangerJob = new LifeStatusChangerJob
-            {
-                scaleConsts = scaleConsts
-            };
-
+            // update the current life status of all the cells with this job            
             // this job requires the neighbor counter job to finish first
-            jobHandle = lifeChangerJob.Schedule(this, jobHandle);
+            jobHandle = Entities
+                .WithReadOnly(scaleConsts)
+                .WithDeallocateOnJobCompletion(scaleConsts)
+                .ForEach((Entity entity, int entityInQueryIndex, ref Scale scale, ref LifeStatus status, in LifeStatusNextCycle nextStatus) =>
+            {
+                status.isAliveNow = nextStatus.isAliveNextCycle;
 
+                // dead cells are invisible (scale 0)
+                scale.Value = scaleConsts[status.isAliveNow];
+
+            }).Schedule(jobHandle);
+            
             return jobHandle;
         }
     }
