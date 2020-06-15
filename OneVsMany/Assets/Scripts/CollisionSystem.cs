@@ -11,7 +11,7 @@ namespace OneVsMany
         /// <summary>
         /// Checks if the player is colliding with a health modifier
         /// </summary>
-        [ExcludeComponent(typeof(Bullet))]
+        /*[ExcludeComponent(typeof(Bullet))]
         //[BurstCompile]
         struct PlayerToHealthModifierCollisionJob : IJobForEachWithEntity<BoundingVolume, HealthModifier>
         {
@@ -32,14 +32,14 @@ namespace OneVsMany
                     commandBuffer.DestroyEntity(index, entity);
                 }
             }
-        }
+        }*/
 
         /// <summary>
         /// Detects if there is a collision between bullets and damageables. If a collision occurs,
         /// the bullet is deactivated and the health is reduced
         /// </summary>
         //[BurstCompile()]
-        [ExcludeComponent(typeof(Player))]
+        /*[ExcludeComponent(typeof(Player))]
         [RequireComponentTag(typeof(Enemy))]
         public struct BulletToDamageableCollisionJob : IJobForEachWithEntity<BoundingVolume, Health>
         {
@@ -69,14 +69,14 @@ namespace OneVsMany
                     }
                 }
             }
-        }
+        }*/
 
         /// <summary>
         /// Checks all Health components to see if their health is less than 0 and
         /// destroys the entity if that is the case
         /// </summary>
         //[BurstCompile()]
-        struct ValidateLifeJob : IJobForEachWithEntity<Enemy, Health>
+        /*struct ValidateLifeJob : IJobForEachWithEntity<Enemy, Health>
         {
             public Entity playerEntity;
             public Player player;
@@ -90,7 +90,7 @@ namespace OneVsMany
                     commandBuffer.SetComponent<Player>(index, playerEntity, player);
                 }
             }
-        }
+        }*/
 
         private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
         protected override void OnCreate()
@@ -105,36 +105,85 @@ namespace OneVsMany
             BoundingVolume playerBounds = GetComponentDataFromEntity<BoundingVolume>(true)[GameHandler.playerEntity];
             Health playerHealth = GetComponentDataFromEntity<Health>(true)[GameHandler.playerEntity];
             Player player = GetComponentDataFromEntity<Player>(true)[GameHandler.playerEntity];
-            
-            PlayerToHealthModifierCollisionJob pToHJob = new PlayerToHealthModifierCollisionJob()
+
+            Entity playerEntity = GameHandler.playerEntity;
+            JobHandle jobHandle = Entities
+                .WithNone<Bullet>()
+                .ForEach((Entity entity, int entityInQueryIndex, ref BoundingVolume vol, ref HealthModifier healthMod) =>
             {
-                player = GameHandler.playerEntity,
-                playerBounds = playerBounds.volume,
-                playerHealth = playerHealth,
-                commandBuffer = commandBuffer
-            };
-            JobHandle jobHandle = pToHJob.Schedule(this, inputDeps);
+                if (vol.volume.Intersects(playerBounds.volume))
+                {
+                    // there was a collision, modify the player's health
+                    Utils.ModifyHealth(ref playerHealth, healthMod.value);
+                    commandBuffer.SetComponent<Health>(entityInQueryIndex, playerEntity, playerHealth);
+
+                    // get rid of the damager
+                    commandBuffer.DestroyEntity(entityInQueryIndex, entity);
+                }
+            }).Schedule(inputDeps);
 
             EntityQuery bulletQuery = EntityManager.CreateEntityQuery(typeof(Bullet), ComponentType.ReadOnly<BoundingVolume>(), ComponentType.ReadOnly<HealthModifier>());
             bulletQuery.AddDependency(jobHandle);
 
-            BulletToDamageableCollisionJob bToDam = new BulletToDamageableCollisionJob()
-            {
-                commandBuffer = commandBuffer,
-                bulletColliders = bulletQuery.ToComponentDataArray<BoundingVolume>(Allocator.TempJob),
-                bulletHealthMods = bulletQuery.ToComponentDataArray<HealthModifier>(Allocator.TempJob),
-                bulletInfos = bulletQuery.ToComponentDataArray<Bullet>(Allocator.TempJob),
-                bullets = bulletQuery.ToEntityArray(Allocator.TempJob)
-            };
-            jobHandle = bToDam.Schedule(this, jobHandle);
+            //BulletToDamageableCollisionJob bToDam = new BulletToDamageableCollisionJob()
+            //{
+            //    commandBuffer = commandBuffer,
+            //    bulletColliders = bulletQuery.ToComponentDataArray<BoundingVolume>(Allocator.TempJob),
+            //    bulletHealthMods = bulletQuery.ToComponentDataArray<HealthModifier>(Allocator.TempJob),
+            //    bulletInfos = bulletQuery.ToComponentDataArray<Bullet>(Allocator.TempJob),
+            //    bullets = bulletQuery.ToEntityArray(Allocator.TempJob)
+            //};
+            //jobHandle = bToDam.Schedule(this, jobHandle);
 
-            ValidateLifeJob validateLifeJob = new ValidateLifeJob()
+            NativeArray<BoundingVolume> bulletColliders = bulletQuery.ToComponentDataArray<BoundingVolume>(Allocator.TempJob);
+            NativeArray<HealthModifier> bulletHealthMods = bulletQuery.ToComponentDataArray<HealthModifier>(Allocator.TempJob);
+            NativeArray<Bullet> bulletInfos = bulletQuery.ToComponentDataArray<Bullet>(Allocator.TempJob);
+            NativeArray<Entity> bullets = bulletQuery.ToEntityArray(Allocator.TempJob);
+
+            jobHandle = Entities
+                .WithDeallocateOnJobCompletion(bulletColliders)
+                .WithDeallocateOnJobCompletion(bulletHealthMods)
+                .WithDeallocateOnJobCompletion(bulletInfos)
+                .WithDeallocateOnJobCompletion(bullets)
+                .WithReadOnly(bulletColliders)
+                .WithReadOnly(bulletHealthMods)
+                .WithReadOnly(bulletInfos)
+                .WithReadOnly(bullets)
+                .WithNone<Player>()
+                .WithAll<Enemy>()
+                .ForEach((Entity entity, int entityInQueryIndex, ref BoundingVolume damageableCollider, ref Health damageableHealth) =>
             {
-                playerEntity = GameHandler.playerEntity,
-                player = player,
-                commandBuffer = commandBuffer
-            };
-            jobHandle = validateLifeJob.Schedule(this, jobHandle);
+                for (int i = 0; i < bulletColliders.Length; i++)
+                {
+                    // bullet isn't active, leave
+                    if (!bulletInfos[i].isActive) continue;
+
+                    if (damageableCollider.volume.Intersects(bulletColliders[i].volume))
+                    {
+                        // bullet hit a damageable, reduce it's health
+                        Utils.ModifyHealth(ref damageableHealth, bulletHealthMods[i].value);
+
+                        // deactivate the bullet
+                        Bullet b = bulletInfos[i];
+                        b.isActive = false;
+                        b.age = 0;
+                        commandBuffer.SetComponent<Bullet>(entityInQueryIndex, bullets[i], b);
+                    }
+                }
+            }).Schedule(jobHandle);
+            jobHandle.Complete();
+
+            jobHandle = Entities
+                .ForEach((Entity entity, int entityInQueryIndex, ref Enemy enemy, ref Health health) =>
+            {
+                if (health.curr <= 0)
+                {
+                    commandBuffer.DestroyEntity(entityInQueryIndex, entity);
+                    player.score += enemy.points;
+                    commandBuffer.SetComponent<Player>(entityInQueryIndex, playerEntity, player);
+                }
+            }).Schedule(jobHandle);
+            jobHandle.Complete();
 
             endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(jobHandle);
             return jobHandle;

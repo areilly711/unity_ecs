@@ -37,7 +37,7 @@ namespace OneVsMany
         void Start()
         {
             // Disalbes the systems until we move through the menus
-            entityManager = World.Active.EntityManager;
+            entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Init(healthDegenRate, hud);
             entityManager.World.GetOrCreateSystem<PlayerUpdateSystem>().Enabled = false;
             entityManager.World.GetOrCreateSystem<FlockingSystem>().Enabled = false;
@@ -120,7 +120,10 @@ namespace OneVsMany
                typeof(Scale),
                typeof(BoundingVolume),
                typeof(Health),
-               typeof(Player)
+               typeof(Player),
+               typeof(WorldRenderBounds),
+               typeof(RenderBounds),
+               typeof(ChunkWorldRenderBounds)
            );
 
             entityManager.SetComponentData<Movement>(playerEntity, new Movement { speed = 5 });
@@ -143,7 +146,10 @@ namespace OneVsMany
                     typeof(BoundingVolume),
                     typeof(Health),
                     typeof(HealthModifier),
-                    typeof(Enemy)
+                    typeof(Enemy),
+                    typeof(WorldRenderBounds),
+                    typeof(RenderBounds),
+                    typeof(ChunkWorldRenderBounds)
                 );
 
                 entityManager.SetComponentData<Movement>(e, new Movement { speed = enemySpeed });
@@ -175,7 +181,10 @@ namespace OneVsMany
                     typeof(Scale),
                     typeof(BoundingVolume),
                     typeof(HealthModifier),
-                    typeof(Bullet)
+                    typeof(Bullet),
+                    typeof(WorldRenderBounds),
+                    typeof(RenderBounds),
+                    typeof(ChunkWorldRenderBounds)
                 );
 
                 InitHealthModifier(e, -bulletDamage);
@@ -195,7 +204,10 @@ namespace OneVsMany
                     typeof(Scale),
                     typeof(BoundingVolume),
                     typeof(HealthModifier),
-                    typeof(Food)
+                    typeof(Food),
+                    typeof(WorldRenderBounds),
+                    typeof(RenderBounds),
+                    typeof(ChunkWorldRenderBounds)
                 );
 
                 InitHealthModifier(e, maxPlayerHealth);

@@ -17,7 +17,7 @@ namespace OneVsMany
         /// <summary>
         /// Updates active bullet positions and bounding volumes
         /// </summary>
-        [BurstCompile]
+        /*[BurstCompile]
         struct BulletUpdateJob : IJobForEach<Bullet, Movement, Translation, BoundingVolume>
         {
             public float deltaTime;
@@ -43,15 +43,34 @@ namespace OneVsMany
                     movement.direction = float3.zero;
                 }
             }
-        }
+        }*/
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            BulletUpdateJob bulletJob = new BulletUpdateJob()
+        {            
+            float dt = World.Time.DeltaTime;
+
+            JobHandle jobHandle = Entities.ForEach((ref Bullet bullet, ref Movement movement, ref Translation position, ref BoundingVolume vol) =>
             {
-                deltaTime = Time.deltaTime
-            };
-            JobHandle jobHandle = bulletJob.Schedule(this, inputDeps);
+                if (bullet.isActive)
+                {
+                    // move the bullet along the direction that it was shot
+                    position.Value += movement.direction * movement.speed * dt;
+                    vol.volume.center = position.Value;
+                    bullet.age += dt;
+
+                    if (bullet.age >= 3)
+                    {
+                        bullet.isActive = false;
+                        bullet.age = 0;
+                    }
+                }
+                else
+                {
+                    position.Value.x = 1000;
+                    movement.direction = float3.zero;
+                }
+            }).Schedule(inputDeps);
+            jobHandle.Complete();
             return jobHandle;
         }
     }
