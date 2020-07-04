@@ -380,6 +380,7 @@ MonoBehaviour:
   speedMax: 2
   posMin: -5
   posMax: 5
+  worldEndThreshold: -3.5
 --- !u!4 &953935305
 Transform:
   m_ObjectHideFlags: 0

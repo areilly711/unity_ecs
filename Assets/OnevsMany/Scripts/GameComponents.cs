@@ -11,12 +11,6 @@ namespace OneVsMany
         public float speed;
     }
 
-    public struct Health : IComponentData
-    {
-        public float curr;
-        public float max;
-    }
-
     public struct BoundingVolume : IComponentData
     {
         public Bounds volume;

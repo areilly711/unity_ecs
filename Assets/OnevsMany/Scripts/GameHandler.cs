@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
+using Shared;
 
 namespace OneVsMany
 {
@@ -119,7 +120,7 @@ namespace OneVsMany
                typeof(RenderMesh),
                typeof(Scale),
                typeof(BoundingVolume),
-               typeof(Health),
+               typeof(HealthFloat),
                typeof(Player),
                typeof(WorldRenderBounds),
                typeof(RenderBounds),
@@ -144,7 +145,7 @@ namespace OneVsMany
                     typeof(RenderMesh),
                     typeof(NonUniformScale),
                     typeof(BoundingVolume),
-                    typeof(Health),
+                    typeof(HealthFloat),
                     typeof(HealthModifier),
                     typeof(Enemy),
                     typeof(WorldRenderBounds),
@@ -217,7 +218,7 @@ namespace OneVsMany
 
         void InitHealth(Entity e, float curr, float max)
         {
-            entityManager.SetComponentData<Health>(e, new Health { curr = curr, max = max });
+            entityManager.SetComponentData<HealthFloat>(e, new HealthFloat { curr = curr, max = max });
         }
 
         void InitHealthModifier(Entity e, float amount)

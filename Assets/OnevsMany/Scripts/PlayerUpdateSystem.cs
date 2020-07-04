@@ -4,6 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Transforms;
+using Shared;
 
 namespace OneVsMany
 {
@@ -31,7 +32,7 @@ namespace OneVsMany
             JobHandle jobHandle = Entities
                 .WithAll<Player>()
                 .ForEach((Entity entity, int entityInQueryIndex, ref Movement movement, 
-                ref Translation position, ref BoundingVolume vol, ref Health health) =>
+                ref Translation position, ref BoundingVolume vol, ref HealthFloat health) =>
             {
                 movement.direction.x = h;
                 movement.direction.y = v;
@@ -81,7 +82,7 @@ namespace OneVsMany
             Player player = GetComponentDataFromEntity<Player>(true)[GameHandler.playerEntity];
             hud.SetScore(player.score);
 
-            Health playerHealth = GetComponentDataFromEntity<Health>(true)[GameHandler.playerEntity];
+            HealthFloat playerHealth = GetComponentDataFromEntity<HealthFloat>(true)[GameHandler.playerEntity];
             hud.SetHealth(playerHealth.curr);
 
             if (playerHealth.curr <= 0)

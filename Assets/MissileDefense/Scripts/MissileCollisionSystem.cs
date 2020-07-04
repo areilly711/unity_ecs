@@ -23,7 +23,7 @@ namespace MissileDefense
         {
             NativeArray<Entity> buildings = EntityManager.CreateEntityQuery(
                 typeof(Building),
-                typeof(Shared.Health),
+                typeof(HealthInt),
                 typeof(Radius))
                 .ToEntityArray(Allocator.TempJob);
 
@@ -52,16 +52,27 @@ namespace MissileDefense
                     if (math.distance(translation.Value, buildingPos.Value) <= radius.value + buildingRadius.value)
                     {
                         // hit the building, reduce health
-                        Shared.Health health = GetComponentDataFromEntity<Shared.Health>(false)[buildings[i]];
+                        HealthInt health = GetComponentDataFromEntity<HealthInt>(false)[buildings[i]];
                         health.curr -= (int)damage.value;
-                        SetComponent<Shared.Health>(buildings[i], health);                        
+                        SetComponent<HealthInt>(buildings[i], health);                        
                         mark.value = 1;
                     }
                 }
                 
                 for (int i = 0; i < defenses.Length; i++)
                 {
+                    Radius defenseRadius = GetComponentDataFromEntity<Radius>(true)[defenses[i]];
+                    Translation defensePos = GetComponentDataFromEntity<Translation>(true)[defenses[i]];
+                    if (math.distance(translation.Value, defensePos.Value) <= radius.value + defenseRadius.value)
+                    {
+                        mark.value = 1;
+                    }
+                }
 
+                if (translation.Value.y < -3.5f)
+                {
+                    // below the ground
+                    mark.value = 1;
                 }
                 
 

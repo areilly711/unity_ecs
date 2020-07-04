@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 3763704864440004268}
   - component: {fileID: -1007692061139328425}
   - component: {fileID: -6262439253490156826}
+  - component: {fileID: -3359878420879196425}
+  - component: {fileID: -8994540967966340069}
   m_Layer: 0
   m_Name: Defense
   m_TagString: Untagged
@@ -30,7 +32,7 @@ Transform:
   m_GameObject: {fileID: 5221284245305917153}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -97,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7be1a9f486f27246985c4a0e5c7efc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  value: 0
+  value: 2
 --- !u!114 &3763704864440004268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,3 +142,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 0
+--- !u!114 &-3359878420879196425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5221284245305917153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d99b8df1f5832c45b260471887760b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  value: 0.5
+--- !u!114 &-8994540967966340069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5221284245305917153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89c7447457b42574cbcfcb8a960dc099, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

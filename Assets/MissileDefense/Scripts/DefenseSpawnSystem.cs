@@ -25,6 +25,8 @@ public class DefenseSpawnSystem : SystemBase
     {
         //float3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         EntityQuery query = EntityManager.CreateEntityQuery(playerQueryDesc);
+        if (query.CalculateEntityCount() == 0) return; 
+
         Entity player = query.GetSingletonEntity();
         Ready playerReadiness = query.GetSingleton<Ready>();        
         if (playerReadiness.value && Input.GetMouseButtonDown(0))

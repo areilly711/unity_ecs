@@ -13,7 +13,7 @@ namespace Shared
     {
         protected override void OnUpdate()
         {
-            Entities.ForEach((ref DeletionMark mark, in Health health) =>
+            Entities.ForEach((ref DeletionMark mark, in HealthInt health) =>
             {
                 mark.value = math.select(0, 1, health.curr <= 0);
             }).Schedule();

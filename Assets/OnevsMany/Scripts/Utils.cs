@@ -1,12 +1,13 @@
 ﻿using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
+using Shared;
 
 namespace OneVsMany
 {
     static public class Utils
     {
-        public static void ModifyHealth(ref Health health, float mod)
+        public static void ModifyHealth(ref HealthFloat health, float mod)
         {
             health.curr += mod;
             health.curr = math.clamp(health.curr, 0, health.max);

@@ -26,12 +26,21 @@ namespace MissileDefense
 
         protected override void OnUpdate()
         {
+            EntityQuery query = EntityManager.CreateEntityQuery(typeof(GameSettings));
+            if (query.CalculateEntityCount() == 0) return;
+            
             GameSettings settings = EntityManager.CreateEntityQuery(typeof(GameSettings)).GetSingleton<GameSettings>();
 
             if (m_spawnTimer >= settings.spawnRate)
             {
-                EntityQuery query = EntityManager.CreateEntityQuery(typeof(Building), typeof(Translation));
-                NativeArray<Translation> buildingPositions = query.ToComponentDataArray<Translation>(Allocator.TempJob);
+                EntityQuery buildingQuery = EntityManager.CreateEntityQuery(typeof(Building), typeof(Translation));
+                if (buildingQuery.CalculateEntityCount() == 0)
+                {
+                    // all buildings have been destroyed, game over
+                    return;
+                }
+
+                NativeArray<Translation> buildingPositions = buildingQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
                 
                 for (int i = 0; i < settings.spawns; i++)
                 {

@@ -3,7 +3,7 @@
 namespace Shared
 {
     [GenerateAuthoringComponent]
-    public struct Health : IComponentData
+    public struct HealthInt : IComponentData
     {
         public int curr;
         public int max;
