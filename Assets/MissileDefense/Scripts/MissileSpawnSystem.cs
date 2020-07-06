@@ -26,6 +26,7 @@ namespace MissileDefense
 
         protected override void OnUpdate()
         {
+            //return;
             EntityQuery query = EntityManager.CreateEntityQuery(typeof(GameSettings));
             if (query.CalculateEntityCount() == 0) return;
             
@@ -40,8 +41,7 @@ namespace MissileDefense
                     return;
                 }
 
-                NativeArray<Translation> buildingPositions = buildingQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
-                
+                NativeArray<Translation> buildingPositions = buildingQuery.ToComponentDataArray<Translation>(Allocator.TempJob);                
                 for (int i = 0; i < settings.spawns; i++)
                 {
                     Entity missile = EntityManager.Instantiate(GamePrefabsAuthoring.Missile);
@@ -62,15 +62,15 @@ namespace MissileDefense
                     Translation target = buildingPositions[m_random.NextInt(buildingPositions.Length)];
                     float3 dir = math.normalize(target.Value - pos.Value);
                     EntityManager.SetComponentData<Direction>(missile, new Direction { value = dir });
-                    float z = math.degrees(math.atan2(dir.y, dir.x));
-                    rot.Value = quaternion.Euler(0, 0, z);                    
+                    //float z = math.degrees(math.atan2(dir.y, dir.x));
+                    //rot.Value = quaternion.Euler(0, 0, z);                    
                     //rot.Value = quaternion.EulerZYX(0, 0, z);
                     //rot.Value = quaternion.LookRotationSafe(target.Value - pos.Value, forward);*/
                     //EntityManager.SetComponentData<Rotation>(missile, rot);
 
 
-                    LocalToWorld ltw = EntityManager.GetComponentData<LocalToWorld>(missile);
-                    ltw.Value = float4x4.EulerXYZ(0, 0, z);
+                    //LocalToWorld ltw = EntityManager.GetComponentData<LocalToWorld>(missile);
+                    //ltw.Value = float4x4.EulerXYZ(0, 0, z);
                     //EntityManager.SetComponentData<LocalToWorld>(missile, ltw);
 
                 }

@@ -22,9 +22,21 @@ namespace MissileDefense
                 Missile = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_missileGameObject,
                     GameObjectConversionSettings.FromWorld(dstManager.World, store));
 
+                //Defense = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_defenseGameObject,
+                //    GameObjectConversionSettings.FromWorld(dstManager.World, store));                
+            }
+
+            using (BlobAssetStore store = new BlobAssetStore())
+            {
+                //Missile = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_missileGameObject,
+                //    GameObjectConversionSettings.FromWorld(dstManager.World, store));
+
                 Defense = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_defenseGameObject,
                     GameObjectConversionSettings.FromWorld(dstManager.World, store));
-            }            
+            }
+
+            //dstManager.SetEnabled(Missile, false);
+            //dstManager.SetEnabled(Defense, false);
         }
     }
 }

@@ -32,8 +32,8 @@ namespace MissileDefense
                 typeof(Radius))
                 .ToEntityArray(Allocator.TempJob);
 
+            Entity score = EntityManager.CreateEntityQuery(typeof(Score)).GetSingletonEntity();
             //EntityCommandBuffer.Concurrent cmdBuffer = endSimCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
-
             //EntityManager.DestroyEntity(EntityManager.CreateEntityQuery(new EntityQueryDesc { a }));
             Entities                
                 .WithReadOnly(buildings)
@@ -61,11 +61,15 @@ namespace MissileDefense
                 
                 for (int i = 0; i < defenses.Length; i++)
                 {
-                    Radius defenseRadius = GetComponentDataFromEntity<Radius>(true)[defenses[i]];
+                    //Radius defenseRadius = GetComponentDataFromEntity<Radius>(true)[defenses[i]];
+                    NonUniformScale defenseRadius = GetComponentDataFromEntity<NonUniformScale>(true)[defenses[i]];
                     Translation defensePos = GetComponentDataFromEntity<Translation>(true)[defenses[i]];
-                    if (math.distance(translation.Value, defensePos.Value) <= radius.value + defenseRadius.value)
+                    if (math.distance(translation.Value, defensePos.Value) <= radius.value + defenseRadius.Value.x * 0.25f)
                     {
                         mark.value = 1;
+                        Score s = GetComponent<Score>(score);
+                        s.value += 1;
+                        SetComponent<Score>(score, s);
                     }
                 }
 
