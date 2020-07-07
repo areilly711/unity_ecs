@@ -15,23 +15,24 @@ namespace MissileDefense
         float m_spawnTimer;
         Random m_random;
         float3 forward;
+        EndSimulationEntityCommandBufferSystem endSimCommandBufferSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
             m_random = new Random();
             m_random.InitState();
-            forward = new float3(0, 1, 0);            
+            forward = new float3(0, 1, 0);
+            endSimCommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate()
         {
-            //return;
             EntityQuery query = EntityManager.CreateEntityQuery(typeof(GameSettings));
             if (query.CalculateEntityCount() == 0) return;
             
             GameSettings settings = EntityManager.CreateEntityQuery(typeof(GameSettings)).GetSingleton<GameSettings>();
-
+            
             if (m_spawnTimer >= settings.spawnRate)
             {
                 EntityQuery buildingQuery = EntityManager.CreateEntityQuery(typeof(Building), typeof(Translation));
@@ -45,7 +46,7 @@ namespace MissileDefense
                 for (int i = 0; i < settings.spawns; i++)
                 {
                     Entity missile = EntityManager.Instantiate(GamePrefabsAuthoring.Missile);
-                    
+                    //Entity missile = cmdBuffer.Instantiate(GamePrefabsAuthoring.Missile);
                     // randomize x pos
                     Translation pos = EntityManager.GetComponentData<Translation>(missile);
                     pos.Value.x = m_random.NextFloat(settings.posMin, settings.posMax);

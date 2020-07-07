@@ -7,11 +7,14 @@ using Unity.Entities;
 using UnityEditor;
 using Shared;
 using Unity.Mathematics;
+using Unity.Collections;
+using Unity.Transforms;
 
 namespace MissileDefense
 {
     public class GameHandler : MonoBehaviour
     {
+        public GameObject m_gameoverPanel;
         public Image m_reloadBar;
         public TextMeshProUGUI m_score;
 
@@ -31,6 +34,31 @@ namespace MissileDefense
             m_reloadBar.fillAmount = math.lerp(0, 1, 1 - (float)playerSettings.counter / (float)playerSettings.speed);
             m_score.text = score.value.ToString();
 
+
+            int buildingCount = em.CreateEntityQuery(
+                typeof(Building),
+                typeof(HealthInt),
+                typeof(Radius))
+                .CalculateEntityCount(); 
+            
+
+            // game over create show UI
+            m_gameoverPanel.SetActive(buildingCount == 0);
+        }
+
+        public void ResetGame()
+        {
+            EntityManager em = World.DefaultGameObjectInjectionWorld.EntityManager;
+            NativeArray<Translation> buildingPositions = em.CreateEntityQuery(typeof(Translation), typeof(BuildingPositionMarker))
+                .ToComponentDataArray<Translation>(Allocator.TempJob);
+
+            for (int i = 0; i < buildingPositions.Length; i++)
+            {
+                Entity e = em.Instantiate(GamePrefabsAuthoring.Building);
+                em.SetComponentData<Translation>(e, buildingPositions[i]);
+            }
+
+            buildingPositions.Dispose();
         }
     }
 }

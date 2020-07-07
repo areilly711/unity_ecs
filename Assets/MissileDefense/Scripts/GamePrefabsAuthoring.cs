@@ -14,6 +14,8 @@ namespace MissileDefense
         public GameObject m_defenseGameObject;
         public static Entity Defense;
 
+        public GameObject m_buildingGameObject;
+        public static Entity Building;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
@@ -22,21 +24,12 @@ namespace MissileDefense
                 Missile = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_missileGameObject,
                     GameObjectConversionSettings.FromWorld(dstManager.World, store));
 
-                //Defense = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_defenseGameObject,
-                //    GameObjectConversionSettings.FromWorld(dstManager.World, store));                
-            }
-
-            using (BlobAssetStore store = new BlobAssetStore())
-            {
-                //Missile = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_missileGameObject,
-                //    GameObjectConversionSettings.FromWorld(dstManager.World, store));
-
                 Defense = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_defenseGameObject,
                     GameObjectConversionSettings.FromWorld(dstManager.World, store));
-            }
 
-            //dstManager.SetEnabled(Missile, false);
-            //dstManager.SetEnabled(Defense, false);
+                Building = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_buildingGameObject,
+                    GameObjectConversionSettings.FromWorld(dstManager.World, store));
+            }
         }
     }
 }

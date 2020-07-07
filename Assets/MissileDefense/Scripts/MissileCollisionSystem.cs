@@ -27,6 +27,12 @@ namespace MissileDefense
                 typeof(Radius))
                 .ToEntityArray(Allocator.TempJob);
 
+            if (buildings.Length == 0)
+            {
+                buildings.Dispose();
+                return;
+            }
+
             NativeArray<Entity> defenses = EntityManager.CreateEntityQuery(
                 typeof(Defense),
                 typeof(Radius))
