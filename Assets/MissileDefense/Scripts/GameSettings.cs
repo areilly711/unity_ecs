@@ -15,7 +15,9 @@ namespace MissileDefense
         public float speedMax;
         public float posMin;
         public float posMax;
+        public float spawnYPos;
         public float worldEndThreshold;
+        
         //public float reloadRate;
     }
 }

@@ -1235,12 +1235,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a351a40967f8f143b6c19e15f068583, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnRate: 1
-  spawns: 2
+  spawnRate: 5
+  spawns: 4
   speedMin: 0.5
   speedMax: 2
   posMin: -5
   posMax: 5
+  spawnYPos: 10
   worldEndThreshold: -3.5
 --- !u!4 &953935305
 Transform:
@@ -1980,7 +1981,7 @@ Transform:
   m_GameObject: {fileID: 1754266683}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -3.76, z: 1}
-  m_LocalScale: {x: 20, y: 1, z: 1}
+  m_LocalScale: {x: 50, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 662769938}
   m_RootOrder: 5

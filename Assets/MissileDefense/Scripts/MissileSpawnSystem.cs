@@ -50,7 +50,7 @@ namespace MissileDefense
                     // randomize x pos
                     Translation pos = EntityManager.GetComponentData<Translation>(missile);
                     pos.Value.x = m_random.NextFloat(settings.posMin, settings.posMax);
-                    pos.Value.y = 5;
+                    pos.Value.y = settings.spawnYPos;
                     pos.Value.z = 0;
                     EntityManager.SetComponentData<Translation>(missile, pos);
 
