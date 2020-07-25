@@ -17,7 +17,6 @@ namespace MissileDefense
             Entities.ForEach((ref Translation translation, in Direction direction, in Speed speed) =>
             {
                 translation.Value += direction.value * speed.value * deltaTime;
-                //translation.Value += math.mul(rotation.Value, new float3(0, 1, 0)) * deltaTime * speed.value;
             }).Schedule();
         }
     }

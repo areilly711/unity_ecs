@@ -2,6 +2,7 @@
 using Unity.Transforms;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace GameLife
 {
@@ -11,7 +12,14 @@ namespace GameLife
     /// </summary>
     public class LifeVerificationSystem : JobComponentSystem
     {        
+        /// <summary>
+        /// keeps track of the seconds that have passed
+        /// </summary>
         float timePassed = 0;
+
+        /// <summary>
+        /// The interval (in seconds) before moving to the next generation
+        /// </summary>
         const float UpdateInterval = 0.5f;
         public bool forceJob;
         
@@ -20,7 +28,7 @@ namespace GameLife
             if (timePassed <= UpdateInterval && !forceJob)
             {
                 // not enough time has passed, get out
-                timePassed += UnityEngine.Time.deltaTime;
+                timePassed += World.Time.DeltaTime;
                 return inputDeps;
             }
 
@@ -32,53 +40,50 @@ namespace GameLife
 
         public JobHandle PerformJob(JobHandle inputDeps)
         {
-            var query = new EntityQueryDesc
-            {
-                All = new ComponentType[] { typeof(LifeStatus), ComponentType.ReadOnly<Neighbors>() }
-            };
-            
-            EntityQuery group = GetEntityQuery(query);
-            ComponentDataFromEntity<LifeStatus> lifeStatusLookup = GetComponentDataFromEntity<LifeStatus>(false);
+            ComponentDataFromEntity<LifeStatus> lifeStatusLookup = GetComponentDataFromEntity<LifeStatus>(true);
             
             JobHandle jobHandle = Entities
                 .WithReadOnly(lifeStatusLookup)
-                .ForEach((Entity e, int entityInQueryIndex, ref LifeStatusNextCycle next, in Neighbors cell) =>
+                .ForEach((Entity cell, ref LifeStatusNextCycle next, in Neighbors neighbors) =>
             {
                 byte numLiveNeighbors = 0;
 
-                // check current life status of all neighbors
-                if (cell.nw != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.nw].isAliveNow;
-                if (cell.n != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.n].isAliveNow;
-                if (cell.ne != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.ne].isAliveNow;
-                if (cell.w != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.w].isAliveNow;
-                if (cell.e != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.e].isAliveNow;
-                if (cell.sw != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.sw].isAliveNow;
-                if (cell.s != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.s].isAliveNow;
-                if (cell.se != Entity.Null) numLiveNeighbors += lifeStatusLookup[cell.se].isAliveNow;
+                // check current life status of all neighbors                
+                if (neighbors.nw != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.nw].isAlive;
+                if (neighbors.n != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.n].isAlive;
+                if (neighbors.ne != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.ne].isAlive;
+                if (neighbors.w != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.w].isAlive;
+                if (neighbors.e != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.e].isAlive;
+                if (neighbors.sw != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.sw].isAlive;
+                if (neighbors.s != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.s].isAlive;
+                if (neighbors.se != Entity.Null) numLiveNeighbors += lifeStatusLookup[neighbors.se].isAlive;
+                
 
-                if (lifeStatusLookup[e].isAliveNow == 1) // the cell currently alive
+                if (lifeStatusLookup[cell].isAlive == 1) // the cell currently alive
                 {
-                    if (numLiveNeighbors < 2 || numLiveNeighbors > 3)
+                    next.isAlive = (byte)math.select(1, 0, numLiveNeighbors < 2 || numLiveNeighbors > 3);
+                    /*if (numLiveNeighbors < 2 || numLiveNeighbors > 3)
                     {
                         // die from under population or over population
-                        next.isAliveNextCycle = 0;
+                        next.isAlive = 0;
                     }
                     else
                     {
-                        next.isAliveNextCycle = 1;
-                    }
+                        next.isAlive = 1;
+                    }*/
                 }
                 else // the cell is currently dead
                 {
-                    if (numLiveNeighbors == 3)
+                    next.isAlive = (byte)math.select(0, 1, numLiveNeighbors == 3);
+                    /*if (numLiveNeighbors == 3)
                     {
                         // become alive from reproduction
-                        next.isAliveNextCycle = 1;
+                        next.isAlive = 1;
                     }
                     else
                     {
-                        next.isAliveNextCycle = 0;
-                    }
+                        next.isAlive = 0;
+                    }*/
                 }
             }).Schedule(inputDeps);
             
@@ -99,10 +104,10 @@ namespace GameLife
                 .WithDeallocateOnJobCompletion(scaleConsts)
                 .ForEach((Entity entity, int entityInQueryIndex, ref Scale scale, ref LifeStatus status, in LifeStatusNextCycle nextStatus) =>
             {
-                status.isAliveNow = nextStatus.isAliveNextCycle;
+                status.isAlive = nextStatus.isAlive;
 
                 // dead cells are invisible (scale 0)
-                scale.Value = scaleConsts[status.isAliveNow];
+                scale.Value = scaleConsts[status.isAlive];
 
             }).Schedule(jobHandle);
             

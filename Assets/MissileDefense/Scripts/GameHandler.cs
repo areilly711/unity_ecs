@@ -12,22 +12,21 @@ using Unity.Transforms;
 
 namespace MissileDefense
 {
+    /// <summary>
+    /// Main entry point of the game. The only MonoBehaviour
+    /// </summary>
     public class GameHandler : MonoBehaviour
     {
         public GameObject m_gameoverPanel;
         public Image m_reloadBar;
         public TextMeshProUGUI m_score;
 
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
         // Update is called once per frame
         void Update()
         {
             EntityManager em = World.DefaultGameObjectInjectionWorld.EntityManager;
+
+            // get the game and player settings in order to update the ui
             GameSettings gameSettings = em.CreateEntityQuery(typeof(GameSettings)).GetSingleton<GameSettings>();
             AttackSpeed playerSettings = em.CreateEntityQuery(typeof(Player), typeof(AttackSpeed)).GetSingleton<AttackSpeed>();
             Score score = em.CreateEntityQuery(typeof(Score)).GetSingleton<Score>();
@@ -48,10 +47,12 @@ namespace MissileDefense
 
         public void ResetGame()
         {
+            // find the entity building positions
             EntityManager em = World.DefaultGameObjectInjectionWorld.EntityManager;
             NativeArray<Translation> buildingPositions = em.CreateEntityQuery(typeof(Translation), typeof(BuildingPositionMarker))
                 .ToComponentDataArray<Translation>(Allocator.TempJob);
 
+            // use the positions to create and position new buildings
             for (int i = 0; i < buildingPositions.Length; i++)
             {
                 Entity e = em.Instantiate(GamePrefabsAuthoring.Building);

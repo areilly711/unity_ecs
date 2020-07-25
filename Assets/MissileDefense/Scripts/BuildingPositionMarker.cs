@@ -3,9 +3,9 @@ using Unity.Entities;
 
 namespace MissileDefense
 {
+    /// <summary>
+    /// Tag for building positions
+    /// </summary>
     [GenerateAuthoringComponent]
-    public struct BuildingPositionMarker : IComponentData
-    {
-        
-    }
+    public struct BuildingPositionMarker : IComponentData { }
 }

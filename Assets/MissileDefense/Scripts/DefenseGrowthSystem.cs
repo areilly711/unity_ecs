@@ -1,14 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Jobs;
+﻿using Unity.Jobs;
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
-using Unity.Burst;
 using Shared;
-using UnityEditor;
 
 namespace MissileDefense
 {
@@ -18,8 +13,8 @@ namespace MissileDefense
         {
             float dt = World.Time.DeltaTime;
 
-            Entities
-                .ForEach((ref NonUniformScale scale, ref Radius radius, ref Wave wave) =>
+            // use a sine wave to change the scale of the defense over time
+            Entities.ForEach((ref NonUniformScale scale, ref Radius radius, ref Wave wave) =>
             {
                 scale.Value = wave.amplitude * math.sin(wave.frequency * wave.time + wave.phase);
                 radius.value = scale.Value.y;

@@ -15,7 +15,7 @@ namespace MissileDefense
         float m_spawnTimer;
         Random m_random;
         float3 forward;
-        EndSimulationEntityCommandBufferSystem endSimCommandBufferSystem;
+        //EndSimulationEntityCommandBufferSystem endSimCommandBufferSystem;
 
         protected override void OnCreate()
         {
@@ -23,7 +23,7 @@ namespace MissileDefense
             m_random = new Random();
             m_random.InitState();
             forward = new float3(0, 1, 0);
-            endSimCommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            //endSimCommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate()
@@ -46,7 +46,6 @@ namespace MissileDefense
                 for (int i = 0; i < settings.spawns; i++)
                 {
                     Entity missile = EntityManager.Instantiate(GamePrefabsAuthoring.Missile);
-                    //Entity missile = cmdBuffer.Instantiate(GamePrefabsAuthoring.Missile);
                     // randomize x pos
                     Translation pos = EntityManager.GetComponentData<Translation>(missile);
                     pos.Value.x = m_random.NextFloat(settings.posMin, settings.posMax);
@@ -59,6 +58,7 @@ namespace MissileDefense
                     s.value = m_random.NextFloat(settings.speedMin, settings.speedMax);
                     EntityManager.SetComponentData<Speed>(missile, s);
 
+                    // move the missile towards a random building
                     Rotation rot = EntityManager.GetComponentData<Rotation>(missile);
                     Translation target = buildingPositions[m_random.NextInt(buildingPositions.Length)];
                     float3 dir = math.normalize(target.Value - pos.Value);
@@ -79,15 +79,6 @@ namespace MissileDefense
                 buildingPositions.Dispose();
             }
             m_spawnTimer += Time.DeltaTime;
-            
-            //EntityManager.Instantiate();
-            /*Entities
-                .WithReadOnly(buildingPositions)
-                .WithDeallocateOnJobCompletion(buildingPositions)
-                .ForEach((ref Translation translation, in Rotation rotation) =>
-                {
-
-            }).Schedule();*/
         }
     }
 }

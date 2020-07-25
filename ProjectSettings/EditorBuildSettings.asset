@@ -11,7 +11,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/OnevsMany/Scenes/OneVsMany.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
+  - enabled: 0
     path: Assets/MissileDefense/Scenes/MissileDefense.unity
     guid: cebfb3b97a0d89b439e0ab0f9621d7fa
+  - enabled: 1
+    path: Assets/Memory/Scenes/Memory.unity
+    guid: 1664912b80f5b214ba60a8f3c58ed8ae
   m_configObjects: {}

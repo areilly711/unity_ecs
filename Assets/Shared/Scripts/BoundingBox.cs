@@ -2,9 +2,13 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-[System.Serializable]
-public struct BoundingBox : IComponentData
+namespace Shared
 {
-    public Bounds box;
-    public AABB aabb;
+    [System.Serializable]
+    [GenerateAuthoringComponent]
+    public struct BoundingBox : IComponentData
+    {
+        public Bounds box;
+        public AABB aabb;
+    }
 }

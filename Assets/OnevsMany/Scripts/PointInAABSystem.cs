@@ -3,6 +3,7 @@ using Unity.Jobs;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using Shared;
 
 public class PointInAABSystem : JobComponentSystem
 {

@@ -1,8 +1,4 @@
-﻿using Unity.Burst;
-using Unity.Collections;
-using Unity.Entities;
-using Unity.Jobs;
-using Unity.Mathematics;
+﻿using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 using Shared;
@@ -18,12 +14,10 @@ public class DefenseSpawnSystem : SystemBase
         {
             All = new ComponentType[] { typeof(Player), typeof(AttackSpeed), typeof(Ready) }
         };
-        //playerQuery = EntityManager.CreateEntityQuery(typeof(Player), typeof(AttackSpeed));
     }
 
     protected override void OnUpdate()
     {
-        //float3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         EntityQuery query = EntityManager.CreateEntityQuery(playerQueryDesc);
         if (query.CalculateEntityCount() == 0) return; 
 
@@ -31,6 +25,9 @@ public class DefenseSpawnSystem : SystemBase
         Ready playerReadiness = query.GetSingleton<Ready>();        
         if (playerReadiness.value && Input.GetMouseButtonDown(0))
         {
+            // the player's reload timer is up and they've clicked the mouse
+
+            // spawn the defense entity and position it where the mouse is
             Entity defense = EntityManager.Instantiate(GamePrefabsAuthoring.Defense);
             Translation defensePos = EntityManager.GetComponentData<Translation>(defense);
             defensePos.Value = Camera.main.ScreenToWorldPoint(Input.mousePosition);

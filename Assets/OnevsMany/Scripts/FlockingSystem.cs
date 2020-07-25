@@ -26,6 +26,11 @@ namespace OneVsMany
             float maxForce = MaxForce;
             float neighborDistance = NeighborDistance;
 
+            float sepWeight = 2.5f;
+            float seekWeight = 0.05f;            
+            float alignWeight = 0.1f;
+            float cohesionWeight = 0.01f;
+
             //JobHandle jobHandle = job.Schedule(this, inputDeps);
             JobHandle jobHandle = Entities
                 .WithDeallocateOnJobCompletion(boidPositions)
@@ -121,10 +126,10 @@ namespace OneVsMany
                     }
 
                     // use weights
-                    sep *= 2.5f;
-                    seek *= 0.05f;
-                    align *= 0.1f;
-                    coh *= 0.01f;
+                    sep *= sepWeight;
+                    seek *= seekWeight;
+                    align *= alignWeight;
+                    coh *= cohesionWeight;
 
                     accel += seek;
                     accel += sep;

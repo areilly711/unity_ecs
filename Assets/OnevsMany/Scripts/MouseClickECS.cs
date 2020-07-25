@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Rendering;
 using Unity.Mathematics;
+using Shared;
 
 public class MouseClickECS : MonoBehaviour
 {

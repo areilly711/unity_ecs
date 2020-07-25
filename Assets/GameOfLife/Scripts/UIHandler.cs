@@ -10,13 +10,13 @@ namespace GameLife
     /// </summary>
     public class UIHandler : MonoBehaviour
     {
-        [SerializeField] GameHandler m_GameHandler;
-        [SerializeField] TMP_InputField widthField;
-        [SerializeField] GameObject gridPanel;
-        [SerializeField] GameObject startPanel;
-        [SerializeField] GameObject controlsPanel;
-        [SerializeField] Toggle m_PlayToggle;
-        [SerializeField] Button m_NextCycleButton;
+        [SerializeField] GameHandler m_GameHandler = null;
+        [SerializeField] TMP_InputField widthField = null;
+        [SerializeField] GameObject gridPanel = null;
+        [SerializeField] GameObject startPanel = null;
+        [SerializeField] GameObject controlsPanel = null;
+        [SerializeField] Toggle m_PlayToggle = null;
+        [SerializeField] Button m_NextCycleButton= null;
 
         private void Start()
         {

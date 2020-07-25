@@ -1,12 +1,9 @@
-﻿using OneVsMany;
-using Unity.Burst;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Shared;
-using System.Diagnostics;
 
 namespace MissileDefense
 {
@@ -21,6 +18,7 @@ namespace MissileDefense
 
         protected override void OnUpdate()
         {
+            // find all of the buildings
             NativeArray<Entity> buildings = EntityManager.CreateEntityQuery(
                 typeof(Building),
                 typeof(HealthInt),
@@ -33,14 +31,14 @@ namespace MissileDefense
                 return;
             }
 
+            // find all the defenses
             NativeArray<Entity> defenses = EntityManager.CreateEntityQuery(
                 typeof(Defense),
                 typeof(Radius))
                 .ToEntityArray(Allocator.TempJob);
 
             Entity score = EntityManager.CreateEntityQuery(typeof(Score)).GetSingletonEntity();
-            //EntityCommandBuffer.Concurrent cmdBuffer = endSimCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
-            //EntityManager.DestroyEntity(EntityManager.CreateEntityQuery(new EntityQueryDesc { a }));
+            
             Entities                
                 .WithReadOnly(buildings)
                 .WithReadOnly(defenses)
@@ -67,11 +65,11 @@ namespace MissileDefense
                 
                 for (int i = 0; i < defenses.Length; i++)
                 {
-                    //Radius defenseRadius = GetComponentDataFromEntity<Radius>(true)[defenses[i]];
                     NonUniformScale defenseRadius = GetComponentDataFromEntity<NonUniformScale>(true)[defenses[i]];
                     Translation defensePos = GetComponentDataFromEntity<Translation>(true)[defenses[i]];
                     if (math.distance(translation.Value, defensePos.Value) <= radius.value + defenseRadius.Value.x * 0.25f)
                     {
+                        // missile is overlapping the defense, mark the missile as destroyed and the player scores a point
                         mark.value = 1;
                         Score s = GetComponent<Score>(score);
                         s.value += 1;

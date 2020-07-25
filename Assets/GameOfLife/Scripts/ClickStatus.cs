@@ -1,7 +1,13 @@
 ﻿using Unity.Entities;
 
-[System.Serializable]
-public struct ClickStatus : IComponentData
+namespace GameLife
 {
-    public bool clicked;
+    /// <summary>
+    /// Keeps track if cell is clicked
+    /// </summary>
+    [System.Serializable]
+    public struct ClickStatus : IComponentData
+    {
+        public bool clicked;
+    }
 }

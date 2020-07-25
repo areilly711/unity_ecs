@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Transforms;
+using Shared;
 
 namespace GameLife
 {
@@ -29,19 +30,19 @@ namespace GameLife
                 // create the ray to test against AABBs
                 Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
                 Vector3 converted = r.origin;
-                Bounds clickArea = new Bounds();
-                clickArea.center = new float3(converted.x, converted.y, 0);
-                clickArea.extents = new float3(0.05f, 0.05f, 1);
+                AABB clickArea = new AABB();
+                clickArea.Center = new float3(converted.x, converted.y, 0);
+                clickArea.Extents = new float3(0.05f, 0.05f, 1);
                 
                 JobHandle jobHandle = Entities
                     .WithDeallocateOnJobCompletion(scaleConsts)
                     .ForEach((Entity e, int entityInQueryIndex, ref BoundingBox b, ref Scale s, ref LifeStatus life, ref ClickStatus click) =>
                 {
-                    if (!click.clicked && b.box.Intersects(clickArea))
+                    if (!click.clicked && b.aabb.Contains(clickArea))
                     {
                         click.clicked = true;
-                        life.isAliveNow ^= 1;
-                        s.Value = scaleConsts[life.isAliveNow];
+                        life.isAlive ^= 1;
+                        s.Value = scaleConsts[life.isAlive];
                     }
                 }).Schedule(inputDeps);
 

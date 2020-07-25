@@ -5,6 +5,7 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine.SceneManagement;
+using Shared;
 
 namespace GameLife
 {
@@ -137,9 +138,7 @@ namespace GameLife
                     entityManager.SetComponentData<Neighbors>(grid[i, j], neighbors);
                 }
             }
-
-            //World.Active.GetExistingSystem<LifeVerificationSystem>().firstCellOffset = minIndex;// grid[0,0].Index;
-
+            
             CreateScaleConstants(scale);
         }
 
@@ -173,8 +172,6 @@ namespace GameLife
                 typeof(ClickStatus)
             );
 
-
-            //entityManager.SetComponentData(cell, );
             SetCellComponentData(cell, row, col, scale);
             return cell;
         }
@@ -206,7 +203,7 @@ namespace GameLife
             Bounds box = new Bounds();
             box.center = position;
             box.extents = new float3(halfScale, halfScale, 1);
-            entityManager.SetComponentData<BoundingBox>(cell, new BoundingBox { box = box });
+            entityManager.SetComponentData<BoundingBox>(cell, new BoundingBox { aabb = new AABB() { Center = box.center, Extents = box.extents } });
             entityManager.SetComponentData<Neighbors>(cell, new Neighbors());
             entityManager.AddComponent<WorldRenderBounds>(cell);
             entityManager.AddComponent<RenderBounds>(cell);

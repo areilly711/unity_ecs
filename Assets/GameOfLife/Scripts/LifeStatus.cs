@@ -2,19 +2,14 @@
 
 namespace GameLife
 {
-    //public struct LifeStatus : IComponentData
-    //{
-    //    public byte isAliveNow;
-    //    public byte isAliveNextCycle;
-    //}
 
     public struct LifeStatus : IComponentData
     {
-        public byte isAliveNow;
+        public byte isAlive;
     }
 
     public struct LifeStatusNextCycle : IComponentData
     {
-        public byte isAliveNextCycle;
+        public byte isAlive;
     }
 }
