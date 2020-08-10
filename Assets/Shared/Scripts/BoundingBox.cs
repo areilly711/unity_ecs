@@ -8,7 +8,6 @@ namespace Shared
     [GenerateAuthoringComponent]
     public struct BoundingBox : IComponentData
     {
-        public Bounds box;
         public AABB aabb;
     }
 }

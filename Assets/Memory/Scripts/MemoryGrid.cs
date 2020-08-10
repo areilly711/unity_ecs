@@ -3,15 +3,14 @@ using Unity.Mathematics;
 using UnityEngine;
 using Unity.Transforms;
 using Unity.Rendering;
-using System.Collections.Generic;
-using System.Data;
 using Shared;
+using Unity.Collections;
 
 namespace Memory
 {
     [DisallowMultipleComponent]
     [RequiresEntityConversion]
-    public class MatchingGrid : MonoBehaviour, IConvertGameObjectToEntity
+    public class MemoryGrid : MonoBehaviour, IConvertGameObjectToEntity
     {
         public Transform m_minPos;
         public Transform m_maxPos;
@@ -20,27 +19,17 @@ namespace Memory
         public int pairs = 10;
         public Material[] m_cardMaterials;
 
-        List<float3> cardPositions = new List<float3>();
+        NativeList<float3> cardPositions;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
+            cardPositions = new NativeList<float3>(Allocator.Temp);
             int numCards = pairs * 2;
-            float2 cardSize = new float2(2f, 2f);
-
+            
+            // try to balance between rows and cols based on the number of cards required
             int cols = (int)math.round(math.sqrt(numCards));
             float width = (m_maxPos.position.x - m_minPos.position.x) / (cols);
             float height = (m_maxPos.position.y - m_minPos.position.y) / (cols);
-
-            /*for (int i = 0; i < pairs; i++)
-            {
-                for (int j = 0; j < pairs; j++)
-                {
-                    float3 pos = m_minPos.position;
-                    pos.x += i * width;
-                    pos.y += j * height;
-                    cardPositions.Add(pos);
-                }
-            }*/
 
             int row = -1;
             for (int i = 0; i < numCards; i++)
@@ -50,27 +39,27 @@ namespace Memory
                     row += 1;
                 }
 
+                // create card positions based on the number of columns. Offset by the min position
                 float3 pos = m_minPos.position;
                 pos.x += (i % cols) * width;
                 pos.y += (row) * height;
-                cardPositions.Add(pos);
-                
+                cardPositions.Add(pos);                
             }
 
+            // create the card pairs, assigning the same value and material to each member of the pair
             for (int i = 0; i < pairs; i++)
-            {                
-                //pos.x = m_minPos.position.x + cardSize.x * i;
-                //pos.y = m_minPos.position.y + cardSize.y * i;
-
+            {
                 int value = i % m_cardMaterials.Length;
                 CreateCard(ExtractPosition(), value, m_cardMaterials[value], dstManager, conversionSystem);
                 CreateCard(ExtractPosition(), value, m_cardMaterials[value], dstManager, conversionSystem);
             }
+
+            cardPositions.Dispose();
         }
 
         float3 ExtractPosition()
         {
-            int index = UnityEngine.Random.Range(0, cardPositions.Count);
+            int index = UnityEngine.Random.Range(0, cardPositions.Length);
             float3 pos = cardPositions[index];
             cardPositions.RemoveAt(index);
             return pos;
@@ -78,12 +67,16 @@ namespace Memory
 
         Entity CreateCard(float3 pos, int value, Material mat, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
+            // extract the card from the gameobject
             GameObjectConversionSettings settings = GameObjectConversionSettings.FromWorld(dstManager.World, conversionSystem.BlobAssetStore);
             Entity card = GameObjectConversionUtility.ConvertGameObjectHierarchy(cardGameObject.gameObject, settings);            
             
+            // create the card
             card = dstManager.Instantiate(card);
-            quaternion startingRot = quaternion.identity;// quaternion.Euler(0, math.radians(180), 0);
-            dstManager.SetComponentData<Rotation>(card, new Rotation() { Value = startingRot });
+
+            quaternion startingRot = quaternion.identity;
+            
+            // set the card value and face
             Card cardData = dstManager.GetComponentData<Card>(card);
             cardData.value = value;
             RenderMesh cardFace = dstManager.GetSharedComponentData<RenderMesh>(cardData.face);
@@ -91,6 +84,8 @@ namespace Memory
             dstManager.SetSharedComponentData<RenderMesh>(cardData.face, cardFace);
             dstManager.SetComponentData<TargetRotation>(card, new TargetRotation { target = startingRot });
             dstManager.SetComponentData<Card>(card, cardData);
+
+            // set position and bounding box
             dstManager.SetComponentData<Translation>(card, new Translation { Value = pos });
             BoundingBox box = dstManager.GetComponentData<BoundingBox>(card);
             box.aabb.Center = pos;

@@ -6,7 +6,7 @@ namespace Memory
 {
     public class GameHandler : MonoBehaviour
     {
-        public MatchingGrid m_matchingGrid;
+        public MemoryGrid m_matchingGrid;
 
         public void ResetGame()
         {
