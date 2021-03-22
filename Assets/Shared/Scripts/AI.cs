@@ -5,8 +5,5 @@ namespace Shared
 {
     [Serializable]
     [GenerateAuthoringComponent]    
-    public struct AI : IComponentData
-    {
-        
-    }
+    public struct AI : IComponentData { }
 }

@@ -1,12 +1,8 @@
-﻿using Unity.Burst;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
-using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Shared;
-using System.Numerics;
 
 namespace MissileDefense
 {
@@ -15,7 +11,6 @@ namespace MissileDefense
         float m_spawnTimer;
         Random m_random;
         float3 forward;
-        //EndSimulationEntityCommandBufferSystem endSimCommandBufferSystem;
 
         protected override void OnCreate()
         {
@@ -23,7 +18,6 @@ namespace MissileDefense
             m_random = new Random();
             m_random.InitState();
             forward = new float3(0, 1, 0);
-            //endSimCommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate()

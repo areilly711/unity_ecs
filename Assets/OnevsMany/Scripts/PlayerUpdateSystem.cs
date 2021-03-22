@@ -28,7 +28,6 @@ namespace OneVsMany
             float dt = World.Time.DeltaTime;
             float degenRate = healthDegenRate;
 
-            //JobHandle jobHandle = playerMoverJob.Schedule(this, inputDeps);
             JobHandle jobHandle = Entities
                 .WithAll<Player>()
                 .ForEach((Entity entity, int entityInQueryIndex, ref Movement movement, 
@@ -56,15 +55,13 @@ namespace OneVsMany
                 
                 bool foundBullet = false;
 
-               /* jobHandle =*/ Entities                    
-                    .ForEach((Entity entity, int entityInQueryIndex, ref Bullet bullet, ref Movement movement, ref Translation position, ref BoundingVolume vol) =>
+               Entities.ForEach((Entity entity, int entityInQueryIndex, ref Bullet bullet,
+                   ref Movement movement, ref Translation position, ref BoundingVolume vol) =>
                 {                    
                     if (!foundBullet && !bullet.isActive)
                     {
                         bullet.isActive = true;
                         vol.volume.center = position.Value = playerPosition.Value;
-                        //scale.Value = 0.25f;
-                        //vol.volume.extents.Set(scale.Value * 0.5f, scale.Value * 0.5f, scale.Value * 0.5f);
                         movement.speed = 7;
                         movement.direction = math.normalizesafe(clickPos - playerPosition.Value);
                         movement.direction.z = 0;
@@ -73,7 +70,6 @@ namespace OneVsMany
                     }
                 }).Run();
                 
-                //jobHandle = fireBulletJob.Schedule(this, jobHandle);
             }
 
             jobHandle.Complete();

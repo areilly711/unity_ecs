@@ -1,8 +1,6 @@
-﻿using UnityEngine;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Jobs;
 using Unity.Collections;
-using Unity.Burst;
 using Shared;
 
 namespace OneVsMany
@@ -23,6 +21,7 @@ namespace OneVsMany
             HealthFloat playerHealth = GetComponentDataFromEntity<HealthFloat>(true)[GameHandler.playerEntity];
             Player player = GetComponentDataFromEntity<Player>(true)[GameHandler.playerEntity];
 
+            // job for collision between player and enemies
             Entity playerEntity = GameHandler.playerEntity;
             JobHandle jobHandle = Entities
                 .WithNone<Bullet>()
@@ -41,22 +40,13 @@ namespace OneVsMany
 
             EntityQuery bulletQuery = EntityManager.CreateEntityQuery(typeof(Bullet), ComponentType.ReadOnly<BoundingVolume>(), ComponentType.ReadOnly<HealthModifier>());
             bulletQuery.AddDependency(jobHandle);
-
-            //BulletToDamageableCollisionJob bToDam = new BulletToDamageableCollisionJob()
-            //{
-            //    commandBuffer = commandBuffer,
-            //    bulletColliders = bulletQuery.ToComponentDataArray<BoundingVolume>(Allocator.TempJob),
-            //    bulletHealthMods = bulletQuery.ToComponentDataArray<HealthModifier>(Allocator.TempJob),
-            //    bulletInfos = bulletQuery.ToComponentDataArray<Bullet>(Allocator.TempJob),
-            //    bullets = bulletQuery.ToEntityArray(Allocator.TempJob)
-            //};
-            //jobHandle = bToDam.Schedule(this, jobHandle);
-
+            
             NativeArray<BoundingVolume> bulletColliders = bulletQuery.ToComponentDataArray<BoundingVolume>(Allocator.TempJob);
             NativeArray<HealthModifier> bulletHealthMods = bulletQuery.ToComponentDataArray<HealthModifier>(Allocator.TempJob);
             NativeArray<Bullet> bulletInfos = bulletQuery.ToComponentDataArray<Bullet>(Allocator.TempJob);
             NativeArray<Entity> bullets = bulletQuery.ToEntityArray(Allocator.TempJob);
 
+            // job for checking collisions between enemies and bullets
             jobHandle = Entities
                 .WithDeallocateOnJobCompletion(bulletColliders)
                 .WithDeallocateOnJobCompletion(bulletHealthMods)
@@ -93,8 +83,10 @@ namespace OneVsMany
             jobHandle = Entities
                 .ForEach((Entity entity, int entityInQueryIndex, ref Enemy enemy, ref HealthFloat  health) =>
             {
+                
                 if (health.curr <= 0)
                 {
+                    // destroy any entity who's health has dropped below 0
                     commandBuffer.DestroyEntity(entityInQueryIndex, entity);
                     player.score += enemy.points;
                     commandBuffer.SetComponent<Player>(entityInQueryIndex, playerEntity, player);
