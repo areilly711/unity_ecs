@@ -49,3 +49,4 @@ obj
 Assembly-CSharp.csproj
 OneVsMany.sln
 Library
+/unity_ecs.sln
